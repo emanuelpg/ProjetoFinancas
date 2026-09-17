@@ -395,24 +395,36 @@ class AnaliseView(Frame):
     class SubVisaoCategorias(SubVisaoBase):
         def __init__(self, parent, voltar_callback):
             super().__init__(parent, "🏷️ Análise por Categoria", voltar_callback)
+        
+            App.create_label(self, text=f"Relatório: Gastos por Categoria", font=("Helvetica", 14, "bold"), bg="white", pady=10)
 
-            curMonth = datetime.today().strftime('%m/%Y')
+            # Frame de campos de inserção
+            form_frame = Frame(self)
+            form_frame.pack(pady=10, padx=10)
 
-            App.create_label(self, text=f"Relatório: Gastos por Categoria em {curMonth}", font=("Helvetica", 14, "bold"), bg="white", pady=15)
+            self.mes_text = StringVar()
+            box = App.create_option_field(form_frame, "Mês", self.mes_text, list(self.analisty.extractMonths()), pady=0, bg="white")
+            box.current(0)
+            self.mes_text.trace_add("write", self.update_dados)
+
             # Área onde você colocará o ttk.Treeview ou gráfico do Matplotlib
             self.conteudo = Frame(self, bg="#ffffff")
-            self.conteudo.pack(fill="both", expand=True, padx=20, pady=10)
+            self.conteudo.pack(fill="both", expand=True, padx=20, pady=5)
 
-            lbl = App.create_label(self.conteudo, text="Tabela / Gráfico de Categorias", bg="white", fg="#7f8c8d", pady=5)
+            self.update_dados()
 
-            valores, colunas, chart_path = self.analisty.gastoPorCategoria()
+        def update_dados(self, *args):
+            for widget in self.conteudo.winfo_children():
+                    widget.destroy()
+
+            lbl = App.create_label(self.conteudo, text=f"Tabela / Gráfico de Categorias em {self.mes_text.get()}", bg="white", fg="#7f8c8d", pady=5)
+
+            valores, colunas, chart_path = self.analisty.gastoPorCategoria(curMes=self.mes_text.get())
 
             self.chart = pilImg.open(chart_path).resize((320, 240), pilImg.Resampling.LANCZOS)
-            #self.chart = ImageTk.PhotoImage(self.chart)
-
-
+            
             self.carregar_dados(self.conteudo, valores, colunas, self.chart)
-
+        
     class SubVisaoTipoGasto(SubVisaoBase):
         def __init__(self, parent, voltar_callback):
             super().__init__(parent, "⚖️ Fixos vs Não Fixos vs Investimento", voltar_callback)
@@ -630,7 +642,7 @@ class App(Tk):
 
     @staticmethod
     def create_option_field(root, fieldName, textVar, valores, row=0, **kwargs):
-        field_label = Label(root, text=fieldName)
+        field_label = Label(root, text=fieldName, bg=kwargs.get("bg"))
         field_combo = ttk.Combobox(
             root, 
             textvariable=textVar, 

@@ -15,8 +15,20 @@ class Analytics:
         if not os.path.exists(self.dir):
             os.makedirs(self.dir)
 
-    def gastoPorCategoria(self):
-        curMes = datetime.datetime.today().strftime('%Y-%m')
+    def extractMonths(self):
+        query = "select distinct strftime('%Y-%m', dia) AS mes " \
+        "from gastos " \
+        "Order by mes DESC"
+
+        results, _ = self.db.consultaManual(query)
+
+        meses = np.array(results)[:,0]
+
+        return meses
+
+    def gastoPorCategoria(self, curMes=None):
+        if curMes is None:
+            curMes = datetime.datetime.today().strftime('%Y-%m')
     
         query = "select g.categoria, g.gasto_total from " \
         "(select categoria, strftime('%Y-%m', dia) AS mes, " \
@@ -26,9 +38,10 @@ class Analytics:
         "GROUP BY categoria, mes) as g; "
 
         result, colunas = self.db.consultaManual(query)
-
+        #print(result)
         result = np.array(result)
-
+        if np.ndim(result) == 1:
+            result = result.reshape(1, -1)
         categorias = result[:, 0]
         valores = [float(val) for val in result[:, 1]]
         fig_path = os.path.join(self.dir, "test.png")
@@ -100,3 +113,4 @@ class Analytics:
 
 test = Analytics()
 print(test.gastoPorCategoria())
+print(test.extractMonths())
