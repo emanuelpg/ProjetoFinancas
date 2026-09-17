@@ -47,6 +47,8 @@ Crie um arquivo `.env` na raiz do projeto:
     ```Snippet de código
     GEMINI_API_KEY="SUA_CHAVE_AQUI"
 
+---
+
 ## ▶️ Execução
 Inicie a aplicação pelo terminal:
 
