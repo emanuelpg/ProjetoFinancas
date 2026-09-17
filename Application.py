@@ -528,9 +528,6 @@ class SQLView(Frame):
             self.tree.insert("", "end", values=valores)
 
 
-        
-
-
 """ Application Class """
 class App(Tk):
     def __init__(self, master=None):
