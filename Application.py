@@ -29,7 +29,7 @@ MAPEAMENTO_CATEGORIAS = {
 class InserirGastoView(Frame):
 
     def __init__(self, parent):
-        super().__init__(parent)
+        super().__init__(parent, bg="#f4f6f9")
         self.db = DataBase()
         label = Label(
             self, text="Tela: Inserir Novo Gasto", font=("Helvetica", 14, "bold")
@@ -229,7 +229,7 @@ class AnaliseView(Frame):
 
     def _criar_cabecalho(self):
         header = Frame(self.frame_menu_cards, bg="#f4f6f9")
-        header.pack(fill="x", padx=25, pady=(20, 10))
+        header.pack(side="top", fill="both", padx=25, pady=(20, 10))
 
         # Label: Painel de Análises Financeiras
         App.create_label(header, "📊 Painel de Análises Financeiras", font=("Helvetica", 16, "bold"), bg="#f4f6f9", fg="#2c3e50", anchor="w")
@@ -321,26 +321,9 @@ class AnaliseView(Frame):
 
         self.frame_detalhes.pack(fill="both", expand=True)
 
-        # Barra superior da tela de detalhe com botão voltar
-        barra_topo = Frame(self.frame_detalhes, bg="#ffffff")
-        barra_topo.pack(fill="x", padx=15, pady=10)
-
-        btn_voltar = Button(
-            barra_topo,
-            text="⬅ Voltar aos Cartões",
-            font=("Helvetica", 9, "bold"),
-            bg="#ecf0f1",
-            relief="flat",
-            command=self.voltar_ao_menu_cards,
-            padx=10,
-            pady=4,
-            cursor="hand2"
-        )
-        btn_voltar.pack(side="left")
-
-        # Renderiza a visão específica
-        conteudo = Frame(self.frame_detalhes, bg="#ffffff")
-        conteudo.pack(fill="both", expand=True, padx=20, pady=10)
+        # # Barra superior da tela de detalhe com botão voltar
+        # barra_topo = Frame(self.frame_detalhes, bg="#ffffff")
+        # barra_topo.pack(fill="x", padx=15, pady=10)
 
         # INSTANCIA A SUB-VISÃO AQUI:
         ClasseView = self.mapa_subvisoes.get(chave)
@@ -348,8 +331,6 @@ class AnaliseView(Frame):
             # Cria a instância da sub-visão passando o frame_detalhes como pai
             sub_view_instancia = ClasseView(self.frame_detalhes, self.voltar_ao_menu_cards)
             sub_view_instancia.pack(fill="both", expand=True)
-        elif chave == "pagamento":
-            App.create_label(conteudo, text="Relatório: Métodos de Pagamento", font=("Helvetica", 14, "bold"), bg="white", pady=20)
 
     def voltar_ao_menu_cards(self):
         """Oculta a tela de detalhe e traz o menu de cartões de volta."""
@@ -425,6 +406,8 @@ class AnaliseView(Frame):
         def __init__(self, parent, voltar_callback):
             super().__init__(parent, "💳 Métodos de Pagamento (PIX, Cartão, etc.)", voltar_callback)
 
+            App.create_label(self, text="Relatório: Métodos de Pagamento", font=("Helvetica", 14, "bold"), bg="white", pady=20)
+
         def carregar_dados(self):
             print("Recarregando métodos de pagamento...")
 
@@ -469,7 +452,7 @@ class HistoricoView(Frame):
 class SQLView(Frame):
 
     def __init__(self, parent):
-        super().__init__(parent)
+        super().__init__(parent, bg="#f4f6f9")
         label = Label(
             self, text="Tela: Consultas SQL", font=("Helvetica", 14, "bold")
         )
@@ -541,10 +524,10 @@ class App(Tk):
 
         db = DataBase()
         db.showGastos()
-        self.container = Frame(self)
+        self.container = Frame(self, bg="#f4f6f9")
         self.container.pack(side="bottom", fill="both", expand=True)
 
-        self.frames = {}
+        self.frames = {}    
         for ViewClass in (InserirGastoView, AnaliseView, HistoricoView, SQLView):
             frame = ViewClass(self.container)
             self.frames[ViewClass] = frame
@@ -555,15 +538,10 @@ class App(Tk):
 
         self.configNavBar()
 
-
     def configNavBar(self):
-        self.nav_bar = Frame(self, bg="#2c3e50", height=45)
+        self.nav_bar = Frame(self, bg="#2c3e50", height=45, bd=0, highlightthickness=0)
         self.nav_bar.pack(side="top", fill="x", expand=False)
         self.nav_bar.pack_propagate(False)  # <-- Garante que a barra não encolha nem suma!
-
-        # 3. Container onde as views ficam
-        self.container = Frame(self)
-        self.container.pack(side="top", fill="both", expand=True)
         
         self._create_nav_button("➕ Inserir Gasto", InserirGastoView)
         self._create_nav_button("📊 Análise", AnaliseView)
@@ -581,7 +559,7 @@ class App(Tk):
             pady=8,
             command=lambda: self.show_frame(frame_class),
         )
-        btn.pack(side="left", padx=5, pady=5)
+        btn.pack(side="left", fill='y', padx=5, pady=5)
 
     def show_frame(self, frame_class):
         frame = self.frames[frame_class]
