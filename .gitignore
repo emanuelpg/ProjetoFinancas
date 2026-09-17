@@ -1,0 +1,13 @@
+# Chaves e variáveis de ambiente
+.env
+
+# Banco de dados e imagens temporárias
+*.db
+imageTest.*
+site_qrcode.jpg
+
+# Python e ambientes virtuais
+__pycache__/
+*.pyc
+.streamlit/
+.venv/
