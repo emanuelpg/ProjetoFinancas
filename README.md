@@ -63,5 +63,4 @@ Crie um arquivo `.env` na raiz do projeto:
 ## ▶️ Execução
 Inicie a aplicação pelo terminal:
 
-    ```bash
     python Main.py
