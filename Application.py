@@ -4,7 +4,7 @@ from tkinter import messagebox, simpledialog
 from tkinter import ttk
 from tkcalendar import DateEntry
 
-from datetime import date
+from datetime import date, datetime
 
 import qrcode
 import PIL.Image as pilImg
@@ -15,6 +15,7 @@ from Chat import Chat
 from BancoDeDados import DataBase
 from Gasto import Gasto
 from Camera import Camera
+from Analytics import Analytics
 import const
 
 """ Constantes """
@@ -207,8 +208,9 @@ class InserirGastoView(Frame):
         else:
             messagebox.showerror(title="Falha no Cadastro", message="Erro no modelo de leitura da NF")
 
-
 class AnaliseView(Frame):
+    analisador = Analytics()
+
     def __init__(self, parent):
         super().__init__(parent, bg="#f4f6f9")
 
@@ -342,6 +344,7 @@ class AnaliseView(Frame):
         def __init__(self, parent, titulo_texto, voltar_callback):
             super().__init__(parent, bg="#ffffff")
             self.voltar_callback = voltar_callback
+            self.analisty = AnaliseView.analisador
 
             # Barra superior com botão voltar
             top_bar = Frame(self, bg="#ffffff")
@@ -365,22 +368,44 @@ class AnaliseView(Frame):
             # Separador visual
             ttk.Separator(self, orient="horizontal").pack(fill="x", padx=15, pady=(0, 10))
 
+        @staticmethod
+        def carregar_dados(root, dados_fetchall, colunas):
+            frame_tabela = Frame(root)
+            frame_tabela.pack(fill="both", expand=True, padx=10, pady=10)
+
+            root.tree = App.create_tree_table(frame_tabela, colunas)
+    
+            for item in root.tree.get_children():
+                root.tree.delete(item)
+    
+            for linha in dados_fetchall:
+                # linha é uma tupla, ex: (1, 'Alimentação', 'Mercado', '2026-09-16', 'PIX', 45.50)
+                valores = list(linha)
+                
+                # Formata o valor monetário se desejar
+                if "valor" in colunas:
+                    idx = colunas.index("valor")
+                    valores[idx] = f"R$ {valores[idx]:.2f}"
+                
+                root.tree.insert("", "end", values=valores)
+
 
     class SubVisaoCategorias(SubVisaoBase):
         def __init__(self, parent, voltar_callback):
             super().__init__(parent, "🏷️ Análise por Categoria", voltar_callback)
 
-            App.create_label(self, text="Relatório: Gastos por Categoria", font=("Helvetica", 14, "bold"), bg="white", pady=20)
+            curMonth = datetime.today().strftime('%m/%Y')
+
+            App.create_label(self, text=f"Relatório: Gastos por Categoria em {curMonth}", font=("Helvetica", 14, "bold"), bg="white", pady=15)
             # Área onde você colocará o ttk.Treeview ou gráfico do Matplotlib
             self.conteudo = Frame(self, bg="#ffffff")
             self.conteudo.pack(fill="both", expand=True, padx=20, pady=10)
 
-            lbl = App.create_label(self.conteudo, text="Tabela / Gráfico de Categorias", bg="white", fg="#7f8c8d", pady=40)
+            lbl = App.create_label(self.conteudo, text="Tabela / Gráfico de Categorias", bg="white", fg="#7f8c8d", pady=5)
 
-        def carregar_dados(self):
-            # Aqui você executa: SELECT categoria, SUM(valor) FROM gastos GROUP BY categoria
-            print("Recarregando dados de Categorias...")
+            valores, colunas = self.analisty.gastoPorCategoria()
 
+            self.carregar_dados(self.conteudo, valores, colunas)
 
     class SubVisaoTipoGasto(SubVisaoBase):
         def __init__(self, parent, voltar_callback):
@@ -391,7 +416,6 @@ class AnaliseView(Frame):
         def carregar_dados(self):
             print("Recarregando dados de Tipo de Gasto...")
 
-
     class SubVisaoEvolucao(SubVisaoBase):
         def __init__(self, parent, voltar_callback):
             super().__init__(parent, "📈 Evolução Temporal e Tendências", voltar_callback)
@@ -401,7 +425,6 @@ class AnaliseView(Frame):
         def carregar_dados(self):
             print("Recarregando dados temporais...")
 
-
     class SubVisaoMetodos(SubVisaoBase):
         def __init__(self, parent, voltar_callback):
             super().__init__(parent, "💳 Métodos de Pagamento (PIX, Cartão, etc.)", voltar_callback)
@@ -410,7 +433,6 @@ class AnaliseView(Frame):
 
         def carregar_dados(self):
             print("Recarregando métodos de pagamento...")
-
 
 class HistoricoView(Frame):
 

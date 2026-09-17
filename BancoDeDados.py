@@ -117,6 +117,7 @@ class DataBase:
             cursor.execute(query) 
             gastosDB.commit() 
             nomes_colunas = [coluna[0] for coluna in cursor.description]
+
             return cursor.fetchall(), nomes_colunas
 
     

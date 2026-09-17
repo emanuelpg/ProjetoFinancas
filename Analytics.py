@@ -2,6 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import sqlite3
+import datetime
 
 from BancoDeDados import DataBase
 
@@ -9,6 +10,21 @@ class Analytics:
     def __init__(self):
         self.db = DataBase()
 
+    def gastoPorCategoria(self):
+        curMes = datetime.datetime.today().strftime('%Y-%m')
+
+        self.db.showGastos()
+        print(curMes)
+        query = "select g.categoria, g.gasto_total from " \
+        "(select categoria, strftime('%Y-%m', dia) AS mes, " \
+        "SUM(valor) as gasto_total "\
+        "FROM gastos "\
+        f"where mes = '{curMes}' AND tipo_gasto in ('Gasto Fixo', 'Gasto Não Fixo') "\
+        "GROUP BY categoria, mes) as g; "
+
+        result, colunas = self.db.consultaManual(query)
+
+        return result, colunas
 
     def gastoMedioMensal(self):
         meses, _ = [l[0] for l in self.db.consultaManual(
@@ -24,8 +40,7 @@ class Analytics:
             income = 0
             outcome = 0
 
-            query = f"select" \
-            "strftime('%Y-%m', dia) AS mes,"\
+            query = f"select strftime('%Y-%m', dia) AS mes,"\
             "SUM(valor) as gasto_total,"\
             "tipo_gasto"\
             "FROM gastos"\
@@ -50,7 +65,8 @@ class Analytics:
         return review, cols
         
 
-a =[[2, 3], [4, 5]]
-print(np.array(a)[:, -1])
+test = Analytics()
+print(test.gastoPorCategoria())
 
-
+print(datetime.datetime.today().strftime('%Y-%m'))
+print(datetime.datetime.today().strftime('%m/%Y'))
