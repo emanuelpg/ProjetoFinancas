@@ -37,3 +37,18 @@ Sistema de gerenciamento financeiro pessoal em Python com interface gráfica (Tk
    ```bash
    git clone [https://github.com/seu-usuario/ProjetoFinancas.git](https://github.com/seu-usuario/ProjetoFinancas.git)
    cd ProjetoFinancas
+
+2. **Instale as dependências:**
+    ```bash
+    pip install -r requirements.txt
+
+3. **Configure as variáveis de ambiente:**
+Crie um arquivo `.env` na raiz do projeto:
+    ```Snippet de código
+    GEMINI_API_KEY="SUA_CHAVE_AQUI"
+
+## ▶️ Execução
+Inicie a aplicação pelo terminal:
+
+    ```bash
+    python Main.py
