@@ -369,11 +369,13 @@ class AnaliseView(Frame):
             ttk.Separator(self, orient="horizontal").pack(fill="x", padx=15, pady=(0, 10))
 
         @staticmethod
-        def carregar_dados(root, dados_fetchall, colunas):
-            frame_tabela = Frame(root)
+        def carregar_dados(root, dados_fetchall, colunas, img):
+            frame_tabela = Frame(root, bg="white", bd=1, relief="solid")
             frame_tabela.pack(fill="both", expand=True, padx=10, pady=10)
+            frame_tabela.pack_propagate(False)
 
-            root.tree = App.create_tree_table(frame_tabela, colunas)
+            #root.tree = App.create_tree_table(frame_tabela, colunas)
+            root.tree = App.create_table_and_graph(frame_tabela, colunas, img, row=0)
     
             for item in root.tree.get_children():
                 root.tree.delete(item)
@@ -403,9 +405,13 @@ class AnaliseView(Frame):
 
             lbl = App.create_label(self.conteudo, text="Tabela / Gráfico de Categorias", bg="white", fg="#7f8c8d", pady=5)
 
-            valores, colunas = self.analisty.gastoPorCategoria()
+            valores, colunas, chart_path = self.analisty.gastoPorCategoria()
 
-            self.carregar_dados(self.conteudo, valores, colunas)
+            self.chart = pilImg.open(chart_path).resize((320, 240), pilImg.Resampling.LANCZOS)
+            #self.chart = ImageTk.PhotoImage(self.chart)
+
+
+            self.carregar_dados(self.conteudo, valores, colunas, self.chart)
 
     class SubVisaoTipoGasto(SubVisaoBase):
         def __init__(self, parent, voltar_callback):
@@ -702,5 +708,72 @@ class App(Tk):
 
         tree.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
+
+        return tree
+
+    @staticmethod
+    def create_table_and_graph(root, colunas, img, row=0, **kwargs):
+
+        root.grid_rowconfigure(row, weight=1)
+        root.grid_columnconfigure(0, weight=1, uniform="grupo1")
+        root.grid_columnconfigure(1, weight=1, uniform="grupo1")
+
+        frame_tabela = tk.Frame(root, bg="white", bd=1, relief="solid")
+        frame_tabela.grid(row=row, column=0, sticky="nsew", padx=10, pady=10)
+
+        tree = App.create_tree_table(frame_tabela, colunas)
+        # tree = ttk.Treeview(
+        #     root,
+        #     columns=colunas,
+        #     show="headings",        # Oculta a coluna fantasma padrão (#0) do Treeview
+        #     selectmode="extended"   # Permite selecionar linhas
+        # )
+
+        # for col in colunas:
+        #     if col == "valor":
+        #         tree.heading("valor", text="Valor (R$)")
+        #         tree.column("valor", width=90, anchor="e")  # Alinhado à direita para moeda
+        #     else:
+        #         tree.heading(col, text=col)
+        #         tree.column(col, width=110, anchor="w")
+
+        # scrollbar = ttk.Scrollbar(root, orient="vertical", command=tree.yview)
+        # tree.configure(yscrollcommand=scrollbar.set)
+
+        # scrollbarX = ttk.Scrollbar(root, orient="horizontal", command=tree.xview)
+        # tree.configure(xscrollcommand=scrollbarX.set)
+
+        # tree.grid(row=row, column=0, sticky="nsew", padx=10, pady=10)
+        # scrollbar.grid(row=row, column=1, sticky="ns", pady=5)
+
+        lbl_img = Label(root, bg="white")
+        lbl_img.grid(row=row, column=1, sticky="nsew", padx=10, pady=10)
+
+        if isinstance(img, str):
+            imagem_original = pilImg.open(img)
+        elif isinstance(img, pilImg.Image):
+            imagem_original = img
+        else:
+            imagem_original = None
+
+        if imagem_original:
+            ultimo_tamanho = {"w": 0, "h": 0}
+            def redimensionar_grafico(event):
+                # Obtém a largura e altura disponíveis no momento
+                w_disp = event.width
+                h_disp = event.height
+
+                if w_disp > 50 and h_disp > 50:
+                    n_max = 4
+                    if abs(w_disp - ultimo_tamanho["w"]) > n_max or abs(h_disp - ultimo_tamanho["h"]) > n_max:
+                        # Mantém a proporção ou estica para ocupar o espaço do frame
+                        img_redimensionada = imagem_original.resize((w_disp - n_max, h_disp - n_max), pilImg.Resampling.LANCZOS)
+                        img_tk = ImageTk.PhotoImage(img_redimensionada, master=root)
+                        
+                        lbl_img.config(image=img_tk)
+                        lbl_img.image = img_tk  # Previne Garbage Collector
+            lbl_img.bind("<Configure>", redimensionar_grafico)
+
+
 
         return tree

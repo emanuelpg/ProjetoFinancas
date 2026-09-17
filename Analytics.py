@@ -1,20 +1,23 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 import numpy as np
 import sqlite3
 import datetime
+import os, sys
 
 from BancoDeDados import DataBase
 
 class Analytics:
     def __init__(self):
         self.db = DataBase()
+        self.dir = r"C:\Users\emanu\ProjetoFinanças\Charts"
+        if not os.path.exists(self.dir):
+            os.makedirs(self.dir)
 
     def gastoPorCategoria(self):
         curMes = datetime.datetime.today().strftime('%Y-%m')
-
-        self.db.showGastos()
-        print(curMes)
+    
         query = "select g.categoria, g.gasto_total from " \
         "(select categoria, strftime('%Y-%m', dia) AS mes, " \
         "SUM(valor) as gasto_total "\
@@ -24,7 +27,37 @@ class Analytics:
 
         result, colunas = self.db.consultaManual(query)
 
-        return result, colunas
+        result = np.array(result)
+
+        categorias = result[:, 0]
+        valores = [float(val) for val in result[:, 1]]
+        fig_path = os.path.join(self.dir, "test.png")
+
+        fig, ax = plt.subplots()
+
+        fig.set_size_inches((5, 3.5))
+        ax.set_title("Gastos por Categoria", fontsize=11, fontweight="bold")
+        plt.tight_layout()
+
+        barras = ax.barh(categorias, valores)
+        max_valor = max(valores) if valores else 100
+        ax.set_xlim(0, max_valor * 1.25)  # 20% de margem no topo da barra
+
+        ax.bar_label(
+            barras, 
+            fmt="R$ %.2f",           # Formata como valor monetário (ex: R$ 254.00)
+            label_type="edge",       # "center" coloca no meio da barra; "edge" coloca na ponta
+            color="black",            
+            fontsize=9, 
+            fontweight="bold"
+        )
+
+        fig.savefig(fig_path, bbox_inches='tight', dpi=100)
+
+        #plt.show()
+        plt.close()
+
+        return result, colunas, fig_path
 
     def gastoMedioMensal(self):
         meses, _ = [l[0] for l in self.db.consultaManual(
@@ -67,6 +100,3 @@ class Analytics:
 
 test = Analytics()
 print(test.gastoPorCategoria())
-
-print(datetime.datetime.today().strftime('%Y-%m'))
-print(datetime.datetime.today().strftime('%m/%Y'))
