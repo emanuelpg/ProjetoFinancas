@@ -20,14 +20,13 @@ class DataBase:
             if resultado:
                 self.first = 0
                 try:
-                    DataBase.saldo = DataBase.consultaManual("select saldo_total from saldo Order by dia DESC, id DESC")[0][0][0]
+                    DataBase.saldo = DataBase.consultaSaldo()
                 except:
                     self.first = 1
                     DataBase.saldo = 0
             else:
                 self.first = 1
                 DataBase.saldo = 0
-            print("Saldo atual:", DataBase.saldo)
 
             # Cria tabela de gastos
             cursor.execute(
@@ -157,6 +156,30 @@ class DataBase:
             return cursor.fetchall(), nomes_colunas
 
     @staticmethod
+    def consultaSaldo(mes=None):
+        if mes is None:
+            return DataBase.consultaManual("select saldo_total from saldo Order by dia DESC, id DESC")[0][0][0]
+        else:
+            query = f"""
+            select
+            COALESCE(i.entradas, 0) - COALESCE(o.saidas, 0) AS saldo,
+            COALESCE(i.entradas, 0) AS entradas,
+            COALESCE(o.saidas, 0) AS saidas from 
+            (
+                select sum(valor) as saidas, strftime('%Y-%m', dia) AS mes 
+                from gastos
+                where mes = '{mes}' AND tipo_gasto in ('Gasto Fixo', 'Gasto Não Fixo')
+            ) as o,
+            (
+                select sum(valor) as entradas, strftime('%Y-%m', dia) AS mes 
+                from gastos
+                where mes = '{mes}' AND tipo_gasto in ('Entrada')
+            ) as i;
+            """
+            saldo, entrada, saida = DataBase.consultaManual(query)[0][0]
+            return saldo, saida, entrada
+
+    @staticmethod
     def atualizaSaldo(new_value, day=None):
         if day is None:
             day = datetime.today().strftime('%Y-%m-%d')
@@ -167,3 +190,6 @@ class DataBase:
 
             return new_value
         return None
+
+
+db = DataBase()
