@@ -258,7 +258,7 @@ class AnaliseView(Frame):
             {
                 "chave": "tipo",
                 "icone": "⚖️",
-                "titulo": "Fixos vs Não Fixos",
+                "titulo": "Distribuição Orçamentária",
                 "desc": "Balanço do orçamento mensal:\nEssenciais, Estilo de Vida e Renda",
                 "row": 0, "col": 1,
                 "cor_hover": "#e8f8f0"
@@ -407,7 +407,6 @@ class AnaliseView(Frame):
             box.current(0)
             self.mes_text.trace_add("write", self.update_dados)
 
-            # Área onde você colocará o ttk.Treeview ou gráfico do Matplotlib
             self.conteudo = Frame(self, bg="#ffffff")
             self.conteudo.pack(fill="both", expand=True, padx=20, pady=5)
 
@@ -427,12 +426,91 @@ class AnaliseView(Frame):
         
     class SubVisaoTipoGasto(SubVisaoBase):
         def __init__(self, parent, voltar_callback):
-            super().__init__(parent, "⚖️ Fixos vs Não Fixos vs Investimento", voltar_callback)
+            super().__init__(parent, "⚖️ Distribuição Orçamentária", voltar_callback)
 
-            App.create_label(self, text="Relatório: Fixos vs Não Fixos", font=("Helvetica", 14, "bold"), bg="white", pady=20)
+            App.create_label(self, text="Relatório: Distribuição Orçamentária", font=("Helvetica", 14, "bold"), bg="white", pady=20)
 
-        def carregar_dados(self):
-            print("Recarregando dados de Tipo de Gasto...")
+            # Frame de campos de inserção
+            form_frame = Frame(self)
+            form_frame.pack(pady=10, padx=10)
+
+            self.mes_text = StringVar()
+            box = App.create_option_field(form_frame, "Mês", self.mes_text, list(self.analisty.extractMonths()), pady=0, bg="white")
+            box.current(0)
+            self.mes_text.trace_add("write", self.update_dados)
+
+            self.conteudo = Frame(self, bg="#ffffff")
+            self.conteudo.pack(fill="both", expand=True, padx=20, pady=5)
+            self.grid_columnconfigure(0, weight=1, uniform="grupo1")
+            self.grid_columnconfigure(1, weight=1, uniform="grupo1")
+
+            self.update_dados()
+
+
+        def update_dados(self, *args):
+            for widget in self.conteudo.winfo_children():
+                    widget.destroy()
+
+            lbl = App.create_label(self.conteudo, text=f"Gráficos Orçamentários em {self.mes_text.get()}", bg="white", fg="#7f8c8d", pady=5)
+
+
+            o_img_path, a_img_path  = self.analisty.gastoOrcamentario(curMes=self.mes_text.get())
+
+            self.frame_graphs = Frame(self.conteudo, bg="white", bd=1, relief="solid")
+            self.frame_graphs.pack(fill="both", expand=True, padx=10, pady=10)
+            self.frame_graphs.pack_propagate(False)
+            self.frame_graphs.rowconfigure(0, weight=1)
+            self.frame_graphs.grid_columnconfigure(0, weight=1)
+            self.frame_graphs.grid_columnconfigure(1, weight=1)
+
+            self.orcamento = self.showChart(o_img_path, row=0, col=0)
+            self.alimentacao = self.showChart(a_img_path, row=0, col=1)
+
+        def showChart(self, img_path, row, col):
+            # Moldura individual para cada gráfico/texto dentro da grade
+            card = Frame(self.frame_graphs, bg="white", bd=1, relief="solid")
+            card.grid(row=0, column=col, sticky="nsew", padx=8, pady=8)
+            card.pack_propagate(False)  # Impede que o conteúdo altere o tamanho do card
+
+            if img_path is not None:
+                imagem_original = pilImg.open(img_path)
+                img_label = Label(card, bg="white")
+                img_label.pack(fill="both", expand=True)
+
+                ultimo = {"w": 0, "h": 0}
+
+                def redimensionar(event):
+                    w = event.width
+                    h = event.height
+
+                    if w > 60 and h > 60:
+                        # Evita recálculos desnecessários por pequenas variações
+                        if abs(w - ultimo["w"]) > 6 or abs(h - ultimo["h"]) > 6:
+                            ultimo["w"] = w
+                            ultimo["h"] = h
+
+                            img_copy = imagem_original.copy()
+                            img_copy.thumbnail((w - 10, h - 10), pilImg.Resampling.LANCZOS)
+
+                            img_tk = ImageTk.PhotoImage(img_copy, master=card)
+                            img_label.config(image=img_tk)
+                            img_label.image = img_tk  # Previne Garbage Collector
+
+                # O evento fica no card pai, prevenindo loop infinito do Label
+                card.bind("<Configure>", redimensionar)
+                return img_label
+            else:
+                aviso_label = Label(
+                    card, 
+                    text="Gráfico ainda não disponível\npara esse mês", 
+                    bg="white", 
+                    fg="#7f8c8d",
+                    justify="center",
+                    wraplength=180
+                )
+                aviso_label.pack(fill="both", expand=True)
+                return aviso_label
+            
 
     class SubVisaoEvolucao(SubVisaoBase):
         def __init__(self, parent, voltar_callback):
@@ -562,8 +640,6 @@ class App(Tk):
         # db = DataBase()
         # db.destroyTable("gastos")
 
-        db = DataBase()
-        db.showGastos()
         self.container = Frame(self, bg="#f4f6f9")
         self.container.pack(side="bottom", fill="both", expand=True)
 
@@ -734,29 +810,6 @@ class App(Tk):
         frame_tabela.grid(row=row, column=0, sticky="nsew", padx=10, pady=10)
 
         tree = App.create_tree_table(frame_tabela, colunas)
-        # tree = ttk.Treeview(
-        #     root,
-        #     columns=colunas,
-        #     show="headings",        # Oculta a coluna fantasma padrão (#0) do Treeview
-        #     selectmode="extended"   # Permite selecionar linhas
-        # )
-
-        # for col in colunas:
-        #     if col == "valor":
-        #         tree.heading("valor", text="Valor (R$)")
-        #         tree.column("valor", width=90, anchor="e")  # Alinhado à direita para moeda
-        #     else:
-        #         tree.heading(col, text=col)
-        #         tree.column(col, width=110, anchor="w")
-
-        # scrollbar = ttk.Scrollbar(root, orient="vertical", command=tree.yview)
-        # tree.configure(yscrollcommand=scrollbar.set)
-
-        # scrollbarX = ttk.Scrollbar(root, orient="horizontal", command=tree.xview)
-        # tree.configure(xscrollcommand=scrollbarX.set)
-
-        # tree.grid(row=row, column=0, sticky="nsew", padx=10, pady=10)
-        # scrollbar.grid(row=row, column=1, sticky="ns", pady=5)
 
         lbl_img = Label(root, bg="white")
         lbl_img.grid(row=row, column=1, sticky="nsew", padx=10, pady=10)
