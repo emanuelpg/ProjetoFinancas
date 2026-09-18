@@ -1,5 +1,6 @@
 # Chaves e variáveis de ambiente
 .env
+financas.bat
 
 # Banco de dados e imagens temporárias
 *.db

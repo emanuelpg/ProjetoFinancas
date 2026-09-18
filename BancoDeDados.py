@@ -1,5 +1,7 @@
 import sqlite3
 from Gasto import Gasto
+import const
+from datetime import datetime
 
 class DataBase:
     nome = "financas.db"
@@ -7,24 +9,53 @@ class DataBase:
         with sqlite3.connect(DataBase.nome) as gastosDB:
             cursor = gastosDB.cursor()
 
+            # Consulta o catálogo do SQLite
+            cursor.execute("""
+                SELECT name FROM sqlite_master 
+                WHERE type='table' AND name='saldo';
+            """)
+
+            resultado = cursor.fetchone()
+
+            if resultado:
+                self.first = 0
+                try:
+                    DataBase.saldo = DataBase.consultaManual("select saldo_total from saldo Order by dia DESC, id DESC")[0][0][0]
+                except:
+                    self.first = 1
+                    DataBase.saldo = 0
+            else:
+                self.first = 1
+                DataBase.saldo = 0
+            print("Saldo atual:", DataBase.saldo)
+
             # Cria tabela de gastos
             cursor.execute(
-                """
+                f"""
                 CREATE TABLE IF NOT EXISTS gastos (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     nome TEXT NOT NULL,
                     dia DATE NOT NULL,
                     valor REAL NOT NULL,
                     tipo_gasto TEXT NOT NULL CHECK (
-                        tipo_gasto IN ("Gasto Fixo", "Gasto Não Fixo", "Income", "Investimento")
+                        tipo_gasto IN {tuple(const.TIPOS_DE_GASTO)}
                     ),
                     categoria TEXT NOT NULL CHECK (
-                        categoria IN ('Doce', 'Fruta', 'Comida Pronta', 'Comida para Fazer', 'Saúde', 'Higiene', 'Planejado', 'Transporte', 'Reserva', 
-                        'caixinha', 'Renda Fixa', 'Assinatura', 'Conta', 'outros')
+                        categoria IN {tuple(const.CATEGORIAS)}
                     ),
                     metodo_pagamento TEXT NOT NULL CHECK (
-                        metodo_pagamento IN ('Crédito', 'Débito')
+                        metodo_pagamento IN {tuple(const.METODOS_PAGAMENTO)}
                     )
+                );
+                """
+            )
+            # Cria tabela de saldos
+            cursor.execute(
+                f"""
+                CREATE TABLE IF NOT EXISTS saldo (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    saldo_total REAL,
+                    dia DATE NOT NULL
                 );
                 """
             )
@@ -44,6 +75,11 @@ class DataBase:
             )
 
             gastosDB.commit()
+
+            if gasto.tipo in ["Gasto Fixo", "Gasto Não Fixo"]:
+                DataBase.saldo = DataBase.atualizaSaldo(DataBase.saldo-float(gasto.price))
+            elif gasto.tipo == "Entrada":
+                DataBase.saldo = DataBase.atualizaSaldo(DataBase.saldo+float(gasto.price))
 
     @staticmethod
     def showGastos():
@@ -120,6 +156,14 @@ class DataBase:
 
             return cursor.fetchall(), nomes_colunas
 
-    
+    @staticmethod
+    def atualizaSaldo(new_value, day=None):
+        if day is None:
+            day = datetime.today().strftime('%Y-%m-%d')
+        with sqlite3.connect(DataBase.nome) as gastosDB:
+            cursor = gastosDB.cursor()
+            cursor.execute(f"INSERT INTO saldo (saldo_total, dia) VALUES (?, ?)", (new_value, day)) 
+            gastosDB.commit() 
 
-            
+            return new_value
+        return None

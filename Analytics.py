@@ -153,7 +153,7 @@ class Analytics:
         )]
 
         review = []
-        cols = ["mes", "income", "outcome", "saldo", "variância"]
+        cols = ["mes", "entrada", "outcome", "saldo", "variância"]
 
         for mes in meses:
             income = 0
@@ -172,7 +172,7 @@ class Analytics:
             for l in result:
                 if l[-1] in ("Gasto Fixo", "Gasto Não Fixo"):
                     outcome += l[1]
-                if l[-1] == "Income":
+                if l[-1] == "entrada":
                     income += l[1]
 
             review.append(np.array([mes, income, outcome, income-outcome]))

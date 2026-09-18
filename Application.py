@@ -27,6 +27,15 @@ MAPEAMENTO_CATEGORIAS = {
 }
 
 """ View Classes """
+class MainView(Frame):
+    def __init__(self, parent):
+        super().__init__(parent, bg="#f4f6f9")
+        self.db = DataBase()
+        label = Label(
+            self, text="Página Inicial", font=("Helvetica", 14, "bold")
+        )
+        label.pack(pady=20)
+
 class InserirGastoView(Frame):
 
     def __init__(self, parent):
@@ -87,7 +96,7 @@ class InserirGastoView(Frame):
         product = Gasto(self.prodTipo_var.get(), self.prodName_var.get(), self.prodValue_var.get(), self.prodCat_var.get(), self.prodDate_var.get(), self.prodMet_var.get())
         params = product._asList()
         if "" not in params:
-            if messagebox.askyesno(title="confirm data", message=str(product)):
+            if messagebox.askyesno(title="confirm data", message=product.__str__(flag=1)):
                 self.cadastrar_gasto(product)
             else:
                 print("Cadastro cancelado")
@@ -101,11 +110,11 @@ class InserirGastoView(Frame):
         params = product._asList()
         if "" not in params:
             if product.flag == 0:
-                answer = messagebox.askyesnocancel(title="Product Unknown", message=f"Produto {product.ori_name} não identificado, gostaria de cadastra-lo com novo nome (se não, o nome atual é mantido)?")
+                answer = messagebox.askyesnocancel(title="Product Unknown", message=f"Produto {product.ori_name} não identificado, gostaria de cadastra-lo com novo nome (se não, o nome {product.ori_name} será cadastrado)?")
                 if answer == True:
                     novo_nome = simpledialog.askstring(
                                     title="Cadastrar Produto",
-                                    prompt=f"Digite o nome padronizado para:\n'{product.name}'"
+                                    prompt=f"Digite o nome padronizado para:\n'{product.ori_name}'"
                                 )
                     # Se o usuário digitou e não cancelou:
                     if novo_nome and novo_nome.strip():
@@ -637,11 +646,21 @@ class App(Tk):
         self.geometry("750x600")
         self.minsize(700, 550)
 
-        # db = DataBase()
-        # db.destroyTable("gastos")
-
         self.container = Frame(self, bg="#f4f6f9")
         self.container.pack(side="bottom", fill="both", expand=True)
+
+
+        checkdb = DataBase()
+
+        if checkdb.first:
+            curDia = datetime.today().strftime('%Y-%m-%d')
+            promp = "Qual seu saldo total no momento? Se não souber pode ser uma estimativa"
+            saldo_inicial = simpledialog.askfloat(title="Sua Primeira Vez Aqui!", prompt=promp, initialvalue=0.)
+            if saldo_inicial is not None:
+                saldo_inicial = float(str(saldo_inicial).replace(",", "."))
+                print(f"INSERT INTO saldo ({str(saldo_inicial).replace(",", ".")}, {curDia})")
+                DataBase.atualizaSaldo(saldo_inicial, curDia)
+                messagebox.showinfo(title="Saldo cadastrado com sucesso!", message=f"Saldo inicial de {saldo_inicial} cadastrado!")
 
         self.frames = {}    
         for ViewClass in (InserirGastoView, AnaliseView, HistoricoView, SQLView):

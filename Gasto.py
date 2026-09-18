@@ -13,9 +13,12 @@ class Gasto:
         self.metodo = pag
         self.ori_name = name
 
-    def __str__(self):
-        return f"Gasto: {self.tipo}, {self.name}, {self.price}, {self.cat}, {self.date}, {self.metodo}"
-
+    def __str__(self, flag=0):
+        if flag == 0:
+            return f"Gasto: {self.tipo}, {self.name}, {self.price}, {self.cat}, {self.date}, {self.metodo}"
+        else:
+            return f"Gasto: {self.tipo}, {self.ori_name}, {self.price}, {self.cat}, {self.date}, {self.metodo}"
+        
     def _asList(self):
         return [self.tipo, self.name, self.price, self.cat, self.date, self.metodo, self.flag]
 
