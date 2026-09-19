@@ -245,6 +245,7 @@ class DataBase:
                 # 8. Re-enable foreign keys
                 cursor.execute("PRAGMA foreign_keys = ON;")
 
+""" Testes manuais """
 #db = DataBase()
 # DataBase.transposeGastos()
 #DataBase.deleteGasto(24)

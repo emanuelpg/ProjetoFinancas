@@ -491,6 +491,8 @@ class AnaliseView(Frame):
             # Cria a instância da sub-visão passando o frame_detalhes como pai
             sub_view_instancia = ClasseView(self.frame_detalhes, self.voltar_ao_menu_cards)
             sub_view_instancia.pack(fill="both", expand=True)
+            if hasattr(ClasseView, "update_dados"):
+                sub_view_instancia.update_dados()
 
     def voltar_ao_menu_cards(self):
         """Oculta a tela de detalhe e traz o menu de cartões de volta."""
@@ -674,10 +676,89 @@ class AnaliseView(Frame):
         def __init__(self, parent, voltar_callback):
             super().__init__(parent, "📈 Evolução Temporal e Tendências", voltar_callback)
 
-            App.create_label(self, text="Relatório: Evolução Temporal", font=("Helvetica", 14, "bold"), bg="white", pady=20)
+            #App.create_label(self, text="Evolução Temporal", font=("Helvetica", 14, "bold"), bg="white", pady=15)
 
-        def carregar_dados(self):
-            print("Recarregando dados temporais...")
+            # Frame de campos de inserção
+            form_frame = Frame(self)
+            form_frame.pack(pady=10, padx=10)
+
+            self.mes_text = StringVar()
+            options = list(self.analisty.extractMonths())
+            options.insert(0, "Anual")
+            box = App.create_option_field(form_frame, "Periodo", self.mes_text, options, pady=0, bg="white")
+            box.current(0)
+            self.mes_text.trace_add("write", self.update_dados)
+
+            self.conteudo = Frame(self, bg="#ffffff")
+            self.conteudo.pack(fill="both", expand=True, padx=20, pady=5)
+            self.grid_columnconfigure(0, weight=1, uniform="grupo1")
+            self.grid_columnconfigure(1, weight=1, uniform="grupo1")
+
+            self.update_dados()
+
+
+        def update_dados(self, *args):
+            for widget in self.conteudo.winfo_children():
+                    widget.destroy()
+
+            lbl = App.create_label(self.conteudo, text=f"Gráficos Orçamentários em {self.mes_text.get()}", bg="white", fg="#7f8c8d", pady=5)
+
+
+            img_path  = self.analisty.evolucaoTemporal(curMes=self.mes_text.get())
+
+            self.frame_graphs = Frame(self.conteudo, bg="white", bd=1, relief="solid")
+            self.frame_graphs.pack(fill="both", expand=True, padx=10, pady=10)
+            self.frame_graphs.pack_propagate(False)
+            self.frame_graphs.rowconfigure(0, weight=1)
+            self.frame_graphs.grid_columnconfigure(0, weight=1)
+            #self.frame_graphs.grid_columnconfigure(1, weight=1)
+
+            self.orcamento = self.showChart(img_path, row=0, col=0)
+
+        def showChart(self, img_path, row, col):
+            # Moldura individual para cada gráfico/texto dentro da grade
+            card = Frame(self.frame_graphs, bg="white", bd=1, relief="solid")
+            card.grid(row=0, column=col, sticky="nsew", padx=8, pady=8)
+            card.pack_propagate(False)  # Impede que o conteúdo altere o tamanho do card
+
+            if img_path is not None:
+                imagem_original = pilImg.open(img_path)
+                img_label = Label(card, bg="white")
+                img_label.pack(fill="both", expand=True)
+
+                ultimo = {"w": 0, "h": 0}
+
+                def redimensionar(event):
+                    w = event.width
+                    h = event.height
+
+                    if w > 60 and h > 60:
+                        # Evita recálculos desnecessários por pequenas variações
+                        if abs(w - ultimo["w"]) > 6 or abs(h - ultimo["h"]) > 6:
+                            ultimo["w"] = w
+                            ultimo["h"] = h
+
+                            img_copy = imagem_original.copy()
+                            img_copy.thumbnail((w - 10, h - 10), pilImg.Resampling.LANCZOS)
+
+                            img_tk = ImageTk.PhotoImage(img_copy, master=card)
+                            img_label.config(image=img_tk)
+                            img_label.image = img_tk  # Previne Garbage Collector
+
+                # O evento fica no card pai, prevenindo loop infinito do Label
+                card.bind("<Configure>", redimensionar)
+                return img_label
+            else:
+                aviso_label = Label(
+                    card, 
+                    text="Gráfico ainda não disponível\npara esse mês", 
+                    bg="white", 
+                    fg="#7f8c8d",
+                    justify="center",
+                    wraplength=180
+                )
+                aviso_label.pack(fill="both", expand=True)
+                return aviso_label
 
     class SubVisaoMetodos(SubVisaoBase):
         def __init__(self, parent, voltar_callback):
