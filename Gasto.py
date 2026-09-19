@@ -2,7 +2,7 @@ import pandas as pd
 from thefuzz import fuzz
 
 class Gasto:
-    product_catalog = pd.read_csv("product_data.csv")
+    product_catalog = pd.read_csv("product_data.csv", usecols=[1, 2])
 
     def __init__(self, tipo, name, price, cat, data, pag):
         self.tipo = tipo
@@ -25,7 +25,7 @@ class Gasto:
     @staticmethod
     def search_prod_name(name):
         cat_copy = Gasto.product_catalog.copy()
-        cat_copy["similarity"] = cat_copy['keys'].apply(lambda x: fuzz.token_set_ratio(name, x))
+        cat_copy["similarity"] = cat_copy['keys'].apply(lambda x: fuzz.token_sort_ratio(x, name))
         cat_copy.sort_values(by='similarity', ascending=False, inplace=True, ignore_index=True)
 
         found = cat_copy.iloc[0]["values"]
@@ -39,3 +39,4 @@ class Gasto:
     @staticmethod
     def map_key_value(key, value):
         Gasto.product_catalog.loc[len(Gasto.product_catalog)] = [key, value]
+        Gasto.product_catalog.to_csv("product_data.csv")

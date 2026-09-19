@@ -7,7 +7,8 @@ from google import genai
 from google.genai import types
 
 class Chat:
-    prompt = "Liste os produtos e preços da seguinte forma, ex: Nome_produto / preço / Data (YYYY-MM-DD) / Categoria. nada mais nada menos, " \
+    prompt = "Liste os produtos e preços da seguinte forma, ex: Nome_produto / preço / Data (YYYY-MM-DD) / Categoria. " \
+    "No preço coloque só o valor (sem simbolo, eg. R$ 2.57 => 2.57) nada mais nada menos, " \
     "além disso retire do nome do produto as informações de quantidade e/ou peso. Categoria deve ser dos tipos:" \
     "('Doce', 'Fruta', 'Comida Pronta', 'Comida para Fazer', 'Saúde', 'Higiene', 'Planejado', 'Transporte', 'Reserva'). " \
     "se não encontrar nenhum produto (i.e. n for imagem de uma compra), apenas informe explicitamente: NOT_FOUND"

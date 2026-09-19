@@ -197,7 +197,9 @@ class InserirGastoView(Frame):
 
         self.imagem_capturada = None
         self.cadastro_manual()
-        self.cadastro_upload()       
+        self.cadastro_upload()
+        product_button = Button(self, text="Novo Produto", command=self.cadastro_nome_produto)
+        product_button.pack(padx=(0, 0), pady=(0, 0))  
 
     def cadastro_manual(self):
         
@@ -240,6 +242,12 @@ class InserirGastoView(Frame):
     def cadastro_upload(self):
         upload_button = Button(self, text="Extrair foto", command=self.abrir_popup_qrcode)
         upload_button.pack(padx=(0, 0), pady=(0, 0))
+
+    def cadastro_nome_produto(self):
+        answ = simpledialog.askstring(title="Registrar Produto", prompt="digite a chave e valor do produto separados por virgula (e.g. caixa de chocolate, chocolate)")
+        if answ is not None:
+            key, val = answ.split(",")
+            Gasto.map_key_value(key.strip(), val.strip())
 
     def confirmar_gasto(self):
         product = Gasto(self.prodTipo_var.get(), self.prodName_var.get(), self.prodValue_var.get(), self.prodCat_var.get(), self.prodDate_var.get(), self.prodMet_var.get())
@@ -347,7 +355,7 @@ class InserirGastoView(Frame):
             produtos = []
             for l in linhas:
                 prodInfo = l.split("/")
-                tipo = "Gasto Não fixo"
+                tipo = "Gasto Não Fixo"
                 name = prodInfo[0].strip()
                 price = float(prodInfo[1].replace(",", ".").strip())
                 data = prodInfo[2].strip()
@@ -356,9 +364,7 @@ class InserirGastoView(Frame):
                 produtos.append(Gasto(tipo, name, price, categ, data, metodo))
 
             if messagebox.askyesno(title="Produtos Encontrados", message=message):
-                for prod in produtos:
-                    message += str(prod) + "\n"
-                    self.cadastrar_gasto(prod)
+                message += f"{len(produtos)} produtos encontrados, dia: {data}"
                 db.showGastos()
                 messagebox.showinfo(title="Cadastro Concluído", message="Nota fiscal cadastrada com sucesso")
             else:

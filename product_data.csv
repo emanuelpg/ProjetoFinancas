@@ -1,123 +1,133 @@
-keys,values
-Arroz,Arroz
-Leite em pó,Leite em pó
-Leite condensado,Leite condensado
-Pimentão,Pimentão
-Cebola,Cebola
-Refrigerante,Refrigerante
-Filé de frango 1kg,Filé de frango 1kg
-Batata,Batata
-Detergente,Detergente
-Manga,Manga
-Linguiça,Linguiça
-Macarrão,Macarrão
-Molho Shoyo,Molho Shoyo
-Molho de tomate,Molho de tomate
-Bacon,Bacon
-Limão,Limão
-Massa mini pizza,Massa mini pizza
-Mussarela,Mussarela
-Torta,Torta
-Farinha de trigo,Farinha de trigo
-Sabonete,Sabonete
-Flocão,Flocão
-Milho pipoca,Milho pipoca
-Salgado,Salgado
-Sabonete Líquido,Sabonete Líquido
-Leite de caixa,Leite de caixa
-Batata frita,Batata frita
-Achocolatado,Achocolatado
-Pão,Pão
-Açúcar,Açúcar
-Frutas,Frutas
-Pão de queijo,Pão de queijo
-Tomate,Tomate
-Salada,Salada
-Água de coco,Água de coco
-Donuts,Donuts
-Creme de leite,Creme de leite
-Marshmallow,Marshmallow
-Pipoca,Pipoca
-Chocolate,Chocolate
-Geladinho,Geladinho
-Doce,Doce
-Filé Mignon,Filé Mignon
-Polvilho doce,Polvilho doce
-Ovos,Ovos
-Peito de pero defumado,Peito de pero defumado
-Provolone,Provolone
-Morango,Morango
-Creme de Avelã,Creme de Avelã
-PATEKO T1 5KG 1UN I1,Arroz
-LEIT INT ITAMBE 400G 1UN F1,Leite em pó
-COND PIRACAN TP 395G 1UN F1,Leite condensado
-PIMENTAO VERDE KG,Pimentão
-CEBOLA KG,Cebola
-SODA 15 ZERO 2L,Refrigerante
-FIL FGO SADIA 1KG,Filé de frango 1kg
-SODA ANTARTIC ZRO 2L,Refrigerante
-BATATA KG,Batata
-DT YPE CLEAR C 500ML,Detergente
-MANGA,Manga
-LING SEARA PERNIL,Linguiça
-FILEZ FR SADI 1KG,Filé de frango 1kg
-D BENTA SEM ESP,Macarrão
-SAKURA TRAD,Molho Shoyo
-FUGINI REF SH,Molho de tomate
-BACON PED SADIA,Bacon
-LIMAO TAHITI,Limão
-MASSA MINI PIZZA,Massa mini pizza
-Q MUSS LEIT FRUITT,Mussarela
-LING TOSCANA SADIA,Linguiça
-TORT FR SADIA,Torta
-FILE FR SADIA 1KG,Filé de frango 1kg
-SPRITE S/AC 2L,Refrigerante
-RENATA DIA A DIA,Farinha de trigo
-ST DOVE REG,Sabonete
-FLOCAO OISHII,Flocão
-MILHO YOKI,Milho pipoca
-TRAKINAS,Salgado
-COCA S/AC PET 2L,Refrigerante
-V COCA S/AC 2L,Refrigerante
-SALG UNIT,Salgado
-SB UNI FLORAL  500ML,Sabonete Líquido
-M TOM STELLA,Molho de tomate
-PELE FABITOS,Salgado
-LECO SEMIDESN 1L,Leite de caixa
-BATATA UNI 2KG,Batata frita
-ACHOC PO ITA,Achocolatado
-NEWBREAD 450G,Pão
-PAO LEITE UNI,Pão
-DEMER S ISABEL 1KG,Açúcar
-MIX DE FRUTAS,Frutas
-PAO QJ FRGO,Pão de queijo
-TOMATE ITALIANO ,Tomate
-SALADA TROPICAL,Salada
-F PEITO PERD ,Filé de frango 1kg
-AGUA PURO COCO,Água de coco
-DONUTS RECHEADO,Donuts
-COND ITALAC SD TP,Leite condensado
-CREME PIRACANJ,Creme de leite
-MAXMALLO ,Marshmallow
-PIPOCA ,Pipoca
-BOMBOM SORT.,Chocolate
-GELADINHO,Geladinho
-CREME LEITE 200G,Creme de leite
-LEITE COND,Leite condensado
-HERSHEYS MAIS,Chocolate
-MARSH.COB,Chocolate
-CHOC. 80G NEUGEBAUER,Chocolate
-MINI CHOCOCANDY,Chocolate
-BALA TUBES MOR,Doce
-FILE MIG SADIA 800G,Filé Mignon
-LING SUINA PERDIGAO,Linguiça
-KUAT 2.0 PET 2L,Refrigerante
-POLVIL D SIAMAR,Polvilho doce
-CR LEITE MOCOCA 200G,Creme de leite
-OVOS PVC BCO C/20,Ovos
-PEITO PERU DEF,Peito de pero defumado
-QUEIJO PROVOLONE ,Provolone
-MORANGO DA ROCA,Morango
-PAO DE FORMA VISCONTI,Pão
-MUSSARELA PECA GAIVOTA,Mussarela
-CR AVELA DOMA,Creme de Avelã
+,keys,values
+0,Arroz,Arroz
+1,Leite em pó,Leite em pó
+2,Leite condensado,Leite condensado
+3,Pimentão,Pimentão
+4,Cebola,Cebola
+5,Refrigerante,Refrigerante
+6,Filé de frango 1kg,Filé de frango 1kg
+7,Batata,Batata
+8,Detergente,Detergente
+9,Manga,Manga
+10,Linguiça,Linguiça
+11,Macarrão,Macarrão
+12,Molho Shoyo,Molho Shoyo
+13,Molho de tomate,Molho de tomate
+14,Bacon,Bacon
+15,Limão,Limão
+16,Massa mini pizza,Massa mini pizza
+17,Mussarela,Mussarela
+18,Torta,Torta
+19,Farinha de trigo,Farinha de trigo
+20,Sabonete,Sabonete
+21,Flocão,Flocão
+22,Milho pipoca,Milho pipoca
+23,Salgado,Salgado
+24,Sabonete Líquido,Sabonete Líquido
+25,Leite de caixa,Leite de caixa
+26,Batata frita,Batata frita
+27,Achocolatado,Achocolatado
+28,Pão,Pão
+29,Açúcar,Açúcar
+30,Frutas,Frutas
+31,Pão de queijo,Pão de queijo
+32,Tomate,Tomate
+33,Salada,Salada
+34,Água de coco,Água de coco
+35,Donuts,Donuts
+36,Creme de leite,Creme de leite
+37,Marshmallow,Marshmallow
+38,Pipoca,Pipoca
+39,Chocolate,Chocolate
+40,Geladinho,Geladinho
+41,Doce,Doce
+42,Filé Mignon,Filé Mignon
+43,Polvilho doce,Polvilho doce
+44,Ovos,Ovos
+45,Peito de pero defumado,Peito de pero defumado
+46,Provolone,Provolone
+47,Morango,Morango
+48,Creme de Avelã,Creme de Avelã
+49,PATEKO T1 5KG 1UN I1,Arroz
+50,LEIT INT ITAMBE 400G 1UN F1,Leite em pó
+51,COND PIRACAN TP 395G 1UN F1,Leite condensado
+52,PIMENTAO VERDE KG,Pimentão
+53,CEBOLA KG,Cebola
+54,SODA 15 ZERO 2L,Refrigerante
+55,FIL FGO SADIA 1KG,Filé de frango 1kg
+56,SODA ANTARTIC ZRO 2L,Refrigerante
+57,BATATA KG,Batata
+58,DT YPE CLEAR C 500ML,Detergente
+59,MANGA,Manga
+60,LING SEARA PERNIL,Linguiça
+61,FILEZ FR SADI 1KG,Filé de frango 1kg
+62,D BENTA SEM ESP,Macarrão
+63,SAKURA TRAD,Molho Shoyo
+64,FUGINI REF SH,Molho de tomate
+65,BACON PED SADIA,Bacon
+66,LIMAO TAHITI,Limão
+67,MASSA MINI PIZZA,Massa mini pizza
+68,Q MUSS LEIT FRUITT,Mussarela
+69,LING TOSCANA SADIA,Linguiça
+70,TORT FR SADIA,Torta
+71,FILE FR SADIA 1KG,Filé de frango 1kg
+72,SPRITE S/AC 2L,Refrigerante
+73,RENATA DIA A DIA,Farinha de trigo
+74,ST DOVE REG,Sabonete
+75,FLOCAO OISHII,Flocão
+76,MILHO YOKI,Milho pipoca
+77,TRAKINAS,Salgado
+78,COCA S/AC PET 2L,Refrigerante
+79,V COCA S/AC 2L,Refrigerante
+80,SALG UNIT,Salgado
+81,SB UNI FLORAL  500ML,Sabonete Líquido
+82,M TOM STELLA,Molho de tomate
+83,PELE FABITOS,Salgado
+84,LECO SEMIDESN 1L,Leite de caixa
+85,BATATA UNI 2KG,Batata frita
+86,ACHOC PO ITA,Achocolatado
+87,NEWBREAD 450G,Pão
+88,PAO LEITE UNI,Pão
+89,DEMER S ISABEL 1KG,Açúcar
+90,MIX DE FRUTAS,Frutas
+91,PAO QJ FRGO,Pão de queijo
+92,TOMATE ITALIANO ,Tomate
+93,SALADA TROPICAL,Salada
+94,F PEITO PERD ,Filé de frango 1kg
+95,AGUA PURO COCO,Água de coco
+96,DONUTS RECHEADO,Donuts
+97,COND ITALAC SD TP,Leite condensado
+98,CREME PIRACANJ,Creme de leite
+99,MAXMALLO ,Marshmallow
+100,PIPOCA ,Pipoca
+101,BOMBOM SORT.,Chocolate
+102,GELADINHO,Geladinho
+103,CREME LEITE 200G,Creme de leite
+104,LEITE COND,Leite condensado
+105,HERSHEYS MAIS,Chocolate
+106,MARSH.COB,Chocolate
+107,CHOC. 80G NEUGEBAUER,Chocolate
+108,MINI CHOCOCANDY,Chocolate
+109,BALA TUBES MOR,Doce
+110,FILE MIG SADIA 800G,Filé Mignon
+111,LING SUINA PERDIGAO,Linguiça
+112,KUAT 2.0 PET 2L,Refrigerante
+113,POLVIL D SIAMAR,Polvilho doce
+114,CR LEITE MOCOCA 200G,Creme de leite
+115,OVOS PVC BCO C/20,Ovos
+116,PEITO PERU DEF,Peito de pero defumado
+117,QUEIJO PROVOLONE ,Provolone
+118,MORANGO DA ROCA,Morango
+119,PAO DE FORMA VISCONTI,Pão
+120,MUSSARELA PECA GAIVOTA,Mussarela
+121,CR AVELA DOMA,Creme de Avelã
+122,gengibre, Gengibre
+123,gengibre em po,gengibre em po
+124,Tomate,cacau
+125,cacau,cacau
+126,Peito de pero defumado,tempero
+127,tempero,tempero
+128,Filé de frango 1kg,tempero
+129,tempero,tempero
+130,Chocolate,chocolate
+131,chocolate,chocolate
