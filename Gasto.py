@@ -31,7 +31,7 @@ class Gasto:
         found = cat_copy.iloc[0]["values"]
         print(f"{name} mapped to {found} with similarity of {cat_copy.iloc[0]["similarity"]}")
 
-        if cat_copy.iloc[0]["similarity"] > 60:
+        if cat_copy.iloc[0]["similarity"] > 70:
             return found, 1
         else:
             return found, 0

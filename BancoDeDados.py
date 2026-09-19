@@ -48,6 +48,13 @@ class DataBase:
                 );
                 """
             )
+            # cursor.execute(
+            #     f"""
+            #     ALTER TABLE gastos ADD CONSTRAINT chk_categoria CHECK (
+            #         categoria IN {tuple(const.CATEGORIAS)}
+            #     );
+            #     """
+            # )
             # Cria tabela de saldos
             cursor.execute(
                 f"""
@@ -115,10 +122,9 @@ class DataBase:
             cursor = gastosDB.cursor()
 
             cursor.execute(
+                f"""
+                DELETE FROM gastos WHERE id = {str(id)}
                 """
-                DELETE FROM gastos WHERE id = ?
-                """,
-                (str(id)),
             )
 
             gastosDB.commit()
@@ -191,5 +197,55 @@ class DataBase:
             return new_value
         return None
 
+    @staticmethod
+    def transposeGastos():
+        with sqlite3.connect(DataBase.nome) as conn:
+            cursor = conn.cursor()
+            cursor.execute("PRAGMA foreign_keys = OFF;")
+            cursor.execute("BEGIN TRANSACTION;")
 
-db = DataBase()
+            try:
+                cursor.execute(
+                    f"""
+                    CREATE TABLE IF NOT EXISTS nova (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        nome TEXT NOT NULL,
+                        dia DATE NOT NULL,
+                        valor REAL NOT NULL,
+                        tipo_gasto TEXT NOT NULL CHECK (
+                            tipo_gasto IN {tuple(const.TIPOS_DE_GASTO)}
+                        ),
+                        categoria TEXT NOT NULL CHECK (
+                            categoria IN {tuple(const.CATEGORIAS)}
+                        ),
+                        metodo_pagamento TEXT NOT NULL CHECK (
+                            metodo_pagamento IN {tuple(const.METODOS_PAGAMENTO)}
+                        )
+                    );
+                    """
+                )
+
+                cursor.execute("""
+                    INSERT INTO nova (id, nome, dia, valor, tipo_gasto, categoria, metodo_pagamento)
+                    SELECT id, nome, dia, valor, tipo_gasto, categoria, metodo_pagamento FROM gastos;
+                """)
+
+                cursor.execute("DROP TABLE gastos;")
+
+                cursor.execute("ALTER TABLE nova RENAME TO gastos;")
+
+                conn.commit()
+                print("Column constraint updated successfully!")
+
+            except Exception as e:
+                conn.rollback()
+                print(f"Failed to update constraint, rolled back: {e}")
+
+            finally:
+                # 8. Re-enable foreign keys
+                cursor.execute("PRAGMA foreign_keys = ON;")
+
+#db = DataBase()
+# DataBase.transposeGastos()
+#DataBase.deleteGasto(24)
+#DataBase.consultaManual("SELECT sql FROM sqlite_master  WHERE type = 'table' AND name = 'nome_da_tabela';")

@@ -23,7 +23,7 @@ import const
 MAPEAMENTO_CATEGORIAS = {
     "Gasto Fixo": const.CATEGORIAS_FIXOS,
     "Gasto Não Fixo": const.CATEGORIAS_N_FIXOS,
-    "Income": const.CATEGORIAS_INCOME,
+    "Entrada": const.CATEGORIAS_INCOME,
     "Investimento": const.CATEGORIAS_INVEST,
 }
 
@@ -58,7 +58,7 @@ class MainView(Frame):
         self.frame_tabela.grid(row=2, column=0, sticky="nsew", columnspan=2, padx=10, pady=15)
 
         self.colunas = []
-        _, self.colunas = DataBase.consultaManual("select nome, valor, tipo_gasto, categoria from gastos order by id DESC")
+        _, self.colunas = DataBase.consultaManual("select nome, valor, categoria, dia from gastos order by id DESC")
 
         self.tree = App.create_tree_table(self.frame_tabela, self.colunas)
         self.carregar_ultmos_gastos()
@@ -68,8 +68,6 @@ class MainView(Frame):
         o_img_path, _  = self.analisty.gastoOrcamentario()
 
         self.showChart(o_img_path, row=2, col=2, colspan=2)
-
-
 
     def mostraValores(self):
         self.saldoTotal = StringVar()
@@ -128,13 +126,13 @@ class MainView(Frame):
 
 
     def carregar_ultmos_gastos(self, dados_fetchall=None):
-        dados_fetchall, _ = DataBase.consultaManual("select nome, valor, tipo_gasto, categoria from gastos order by id DESC")
+        dados_fetchall, _ = DataBase.consultaManual("select nome, valor, categoria, dia from gastos where tipo_gasto='Gasto Não Fixo' order by dia DESC, id DESC")
         for item in self.tree.get_children():
             self.tree.delete(item)
 
         cont = 0
         for linha in dados_fetchall:
-            if cont == 5:
+            if cont == 10:
                 break
             # Formata o valor monetário
             valores = list(linha)
@@ -186,8 +184,6 @@ class MainView(Frame):
             )
             aviso_label.pack(fill="both", expand=True)
             return aviso_label
-
-
 
 class InserirGastoView(Frame):
 
@@ -747,7 +743,7 @@ class SQLView(Frame):
     def runQuery(self):
 
         cur_query = self.query.get("1.0", "end-1c")
-        if ("delete" in cur_query) or ("drop" in cur_query) or ("select" not in cur_query):
+        if ("delete" in str.lower(cur_query)) or ("drop" in str.lower(cur_query)) or ("select" not in str.lower(cur_query)):
             messagebox.showwarning(title="Ação Proibida", message="só são permitidas ações de select")
         else:
             db = DataBase()
@@ -773,9 +769,9 @@ class SQLView(Frame):
 
         self.tree = App.create_tree_table(frame_tabela, colunas)
 
-        self.carregar_dados(dados_fetchall, colunas)
+        self.carregar_dados_sql(dados_fetchall, colunas)
 
-    def carregar_dados(self, dados_fetchall, colunas):
+    def carregar_dados_sql(self, dados_fetchall, colunas):
         for item in self.tree.get_children():
             self.tree.delete(item)
 

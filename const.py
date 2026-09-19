@@ -1,8 +1,8 @@
 TIPOS_DE_GASTO = ["Gasto Fixo", "Gasto Não Fixo", "Entrada", "Investimento"]
 CATEGORIAS_FIXOS = ['Assinatura', 'Conta', 'outros']
-CATEGORIAS_N_FIXOS = ['Doce', 'Fruta', 'Comida Pronta', 'Comida para Fazer', 'Saúde', 'Higiene', 'Planejado',  'Transporte', 'Reserva']
+CATEGORIAS_N_FIXOS = ['Doce', 'Fruta', 'Comida Pronta', 'Comida para Fazer', 'Saúde', 'Higiene', 'Planejado',  'Transporte', 'Reserva', 'outros']
 CATEGORIAS_INVEST = ['caixinha', 'Renda Fixa', 'outros']
-CATEGORIAS_INCOME = ["Bolsas", "Divisão de Compras"]
+CATEGORIAS_INCOME = ["Bolsas", "Divisão de Compras", 'outros']
 CATEGORIAS = ['Doce', 'Fruta', 'Comida Pronta', 'Comida para Fazer', 'Saúde', 'Higiene', 'Planejado', 
-              'Transporte', 'Reserva', 'caixinha', 'Renda Fixa', 'Assinatura', 'Conta', 'outros']
+              'Transporte', 'Reserva', 'caixinha', 'Renda Fixa', 'Assinatura', 'Conta', 'outros', "Bolsas", "Divisão de Compras", 'outros']
 METODOS_PAGAMENTO = ['Crédito', 'Débito', "PIX", "Boleto"]
