@@ -1,7 +1,11 @@
 import sqlite3
+
 from Gasto import Gasto
 import const
+
 from datetime import datetime
+from dateutil.relativedelta import relativedelta
+from datetime import date
 
 class DataBase:
     nome = "financas.db"
@@ -44,7 +48,8 @@ class DataBase:
                     ),
                     metodo_pagamento TEXT NOT NULL CHECK (
                         metodo_pagamento IN {tuple(const.METODOS_PAGAMENTO)}
-                    )
+                    ),
+                    parcela INTEGER DEFAULT 1 NOT NULL
                 );
                 """
             )
@@ -68,17 +73,21 @@ class DataBase:
             gastosDB.commit()
 
     @staticmethod
-    def insertGasto(gasto):
+    def insertGasto(gasto, parcelas="1"):
+        parc = int(parcelas)
+        data_base = date.fromisoformat(gasto.date)
+        val_parc = gasto.price / parc
         with sqlite3.connect(DataBase.nome) as gastosDB:
             cursor = gastosDB.cursor()
-
-            cursor.execute(
-                """
-                INSERT INTO gastos (tipo_gasto, nome, dia, categoria, valor, metodo_pagamento)
-                VALUES (?, ?, ?, ?, ?, ?)
-                """,
-                (gasto.tipo, gasto.name, gasto.date, gasto.cat, gasto.price, gasto.metodo),
-            )
+            for i in range(parc):
+                data_parcela = (data_base + relativedelta(months=i)).isoformat()
+                cursor.execute(
+                    """
+                    INSERT INTO gastos (tipo_gasto, nome, dia, categoria, valor, metodo_pagamento, parcela)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (gasto.tipo, gasto.name, data_parcela, gasto.cat, val_parc, gasto.metodo, i+1),
+                )
 
             gastosDB.commit()
 
@@ -109,7 +118,7 @@ class DataBase:
             cursor.execute(
                 """
                 SELECT * FROM gastos
-                Order by dia DESC
+                Order by dia DESC, id DESC
                 """
             )
 
@@ -245,8 +254,33 @@ class DataBase:
                 # 8. Re-enable foreign keys
                 cursor.execute("PRAGMA foreign_keys = ON;")
 
+    @staticmethod
+    def insertCol(table, colName, dtype, default=None):
+        with sqlite3.connect(DataBase.nome) as conn:
+            cursor = conn.cursor()
+
+            try:
+                if default is not None:
+                    cursor.execute(
+                        f"""
+                        ALTER TABLE {table}
+                        ADD {colName} {dtype} DEFAULT {default}
+                        """
+                        )
+                else:
+                    cursor.execute(
+                        f"""
+                        ALTER TABLE {table}
+                        ADD {colName} {dtype}
+                        """
+                        )
+            except Exception as e:
+                print("Failed to add new column")
+                print(e)
+
 """ Testes manuais """
-#db = DataBase()
+# db = DataBase()
+# db.insertCol("gastos", "parcela", "INTEGER", 1)
 # DataBase.transposeGastos()
 #DataBase.deleteGasto(24)
 #DataBase.consultaManual("SELECT sql FROM sqlite_master  WHERE type = 'table' AND name = 'nome_da_tabela';")

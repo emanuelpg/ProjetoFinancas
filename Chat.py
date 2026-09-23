@@ -16,7 +16,7 @@ class Chat:
     def __init__(self):
         self.client = genai.Client()
         self.models = self.getAvailableModels()
-        self.models = ["gemini-flash-lite-latest"]
+        self.models = ["gemini-flash-lite-latest", "gemini-flash-3.6"]
 
     def getModelAnswer(self, img, timeout_segundos=30):
         for m in self.models:

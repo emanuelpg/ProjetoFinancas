@@ -226,11 +226,15 @@ class InserirGastoView(Frame):
 
         # Valor
         self.prodValue_var = StringVar()
-        App.create_entry_field(form_frame, "Valor", textVar=self.prodValue_var, row=4, padx=5, pady=2)
+        App.create_entry_field(form_frame, "Valor Total", textVar=self.prodValue_var, row=4, padx=5, pady=2)
+
+        # Parcelas
+        self.prodParc_var = StringVar(value="1")
+        App.create_entry_field(form_frame, "Qtd. Parcelas", textVar=self.prodParc_var, row=5, padx=5, pady=2)
 
         # Metodo de Pagamento
         self.prodMet_var = StringVar()
-        App.create_option_field(form_frame, "Método de Pagamento", textVar=self.prodMet_var, valores=const.METODOS_PAGAMENTO, row=5, padx=5, pady=2)
+        App.create_option_field(form_frame, "Método de Pagamento", textVar=self.prodMet_var, valores=const.METODOS_PAGAMENTO, row=6, padx=5, pady=2)
         
 
         # self.prodName_entry = Entry(self, textvar=self.prodName_text)
@@ -255,6 +259,7 @@ class InserirGastoView(Frame):
         if "" not in params:
             if messagebox.askyesno(title="confirm data", message=product.__str__(flag=1)):
                 self.cadastrar_gasto(product)
+                self.prodParc_var.set(value="1")
             else:
                 print("Cadastro cancelado")
         else:
@@ -285,7 +290,7 @@ class InserirGastoView(Frame):
                     messagebox.showwarning(title="Cadastro Cancelado", message=f"Gasto {product.ori_name} não foi cadastrado")
                     return
 
-            self.db.insertGasto(product)
+            self.db.insertGasto(product, parcelas=self.prodParc_var.get())
             print("Gastos cadastrados com sucesso!")
             self.db.showGastos()
         else:
@@ -361,10 +366,10 @@ class InserirGastoView(Frame):
                 data = prodInfo[2].strip()
                 categ = prodInfo[3].strip()
                 metodo = "Crédito"
-                produtos.append(Gasto(tipo, name, price, categ, data, metodo))
-
+                produto = Gasto(tipo, name, price, categ, data, metodo)
+                produtos.append(produto)
+                message += f"{produto.__str__(1)} dia: {data}\n"
             if messagebox.askyesno(title="Produtos Encontrados", message=message):
-                message += f"{len(produtos)} produtos encontrados, dia: {data}"
                 db.showGastos()
                 messagebox.showinfo(title="Cadastro Concluído", message="Nota fiscal cadastrada com sucesso")
             else:
@@ -792,7 +797,7 @@ class HistoricoView(Frame):
         self.frame_tabela = Frame(self)
         self.frame_tabela.pack(fill="both", expand=True, padx=10, pady=10)
 
-        self.colunas = ("id", "nome", "dia", "valor", "tipo_gasto", "categoria", "metodo_pagamento")
+        self.colunas = ("id", "nome", "dia", "valor", "tipo_gasto", "categoria", "metodo_pagamento", "parcela")
 
         self.tree = App.create_tree_table(self.frame_tabela, self.colunas)
 
