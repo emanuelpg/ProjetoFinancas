@@ -177,6 +177,7 @@ class Analytics:
 
         else:
             mensal = 1
+            curMes = datetime.datetime.today().strftime('%Y-%m')
             query = f"""
                 SELECT 
                     strftime('%Y-%m', dia) as mes,
@@ -194,6 +195,7 @@ class Analytics:
                     -- Total Investido
                     COALESCE(SUM(CASE WHEN tipo_gasto = 'Investimento' THEN valor ELSE 0 END), 0) AS investimento
                 FROM gastos
+                where mes <= '{curMes}' 
                 group by mes
                 order by mes;                
                 """
@@ -265,6 +267,52 @@ class Analytics:
             fig_path = None
 
         return fig_path
+
+    def gastoMetodos(self, curMes=None):
+        if curMes is None:
+            curMes = datetime.datetime.today().strftime('%Y-%m')
+    
+        query = "select g.metodo_pagamento, g.gasto_total from " \
+        "(select metodo_pagamento, strftime('%Y-%m', dia) AS mes, " \
+        "SUM(valor) as gasto_total "\
+        "FROM gastos "\
+        f"where mes = '{curMes}' AND tipo_gasto in ('Gasto Fixo', 'Gasto Não Fixo')"\
+        "GROUP BY metodo_pagamento, mes) as g; "
+
+        result, colunas = self.db.consultaManual(query)
+        result = np.array(result)
+        if np.ndim(result) == 1:
+            result = result.reshape(1, -1)
+
+        categorias = result[:, 0]
+        valores = [float(val) for val in result[:, 1]]
+        fig_path = os.path.join(self.dir, "metodo.png")
+
+        fig, ax = plt.subplots()
+
+        fig.set_size_inches((5, 3.5))
+        ax.set_title("Gastos por Método", fontsize=11, fontweight="bold")
+        plt.tight_layout()
+
+        barras = ax.barh(categorias, valores)
+        max_valor = max(valores) if valores else 100
+        ax.set_xlim(0, max_valor * 1.25)  # 20% de margem no topo da barra
+
+        ax.bar_label(
+            barras, 
+            fmt="R$ %.2f",           # Formata como valor monetário (ex: R$ 254.00)
+            label_type="edge",       # "center" coloca no meio da barra; "edge" coloca na ponta
+            color="black",            
+            fontsize=9, 
+            fontweight="bold"
+        )
+
+        fig.savefig(fig_path, bbox_inches='tight', dpi=100)
+
+        #plt.show()
+        plt.close()
+
+        return result, colunas, fig_path
 
     def gastoMedioMensal(self):
         meses, _ = [l[0] for l in self.db.consultaManual(

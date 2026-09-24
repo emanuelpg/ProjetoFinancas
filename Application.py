@@ -682,7 +682,6 @@ class AnaliseView(Frame):
                 aviso_label.pack(fill="both", expand=True)
                 return aviso_label
             
-
     class SubVisaoEvolucao(SubVisaoBase):
         def __init__(self, parent, voltar_callback):
             super().__init__(parent, "📈 Evolução Temporal e Tendências", voltar_callback)
@@ -775,11 +774,34 @@ class AnaliseView(Frame):
         def __init__(self, parent, voltar_callback):
             super().__init__(parent, "💳 Métodos de Pagamento (PIX, Cartão, etc.)", voltar_callback)
 
-            App.create_label(self, text="Relatório: Métodos de Pagamento", font=("Helvetica", 14, "bold"), bg="white", pady=20)
+            #App.create_label(self, text="Relatório: Métodos de Pagamento", font=("Helvetica", 14, "bold"), bg="white", pady=20)
 
-        def carregar_dados(self):
-            print("Recarregando métodos de pagamento...")
+            # Frame de campos de inserção
+            form_frame = Frame(self)
+            form_frame.pack(pady=10, padx=10)
 
+            self.mes_text = StringVar()
+            box = App.create_option_field(form_frame, "Mês", self.mes_text, list(self.analisty.extractMonths()), pady=0, bg="white")
+            box.current(0)
+            self.mes_text.trace_add("write", self.update_dados)
+
+            self.conteudo = Frame(self, bg="#ffffff")
+            self.conteudo.pack(fill="both", expand=True, padx=20, pady=5)
+
+            self.update_dados()
+
+        def update_dados(self):
+            for widget in self.conteudo.winfo_children():
+                                widget.destroy()
+            
+            lbl = App.create_label(self.conteudo, text=f"Tabela / Gráfico de Categorias em {self.mes_text.get()}", bg="white", fg="#7f8c8d", pady=5)
+
+            valores, colunas, chart_path = self.analisty.gastoMetodos(curMes=self.mes_text.get())
+
+            self.chart = pilImg.open(chart_path).resize((320, 240), pilImg.Resampling.LANCZOS)
+            
+            self.carregar_dados(self.conteudo, valores, colunas, self.chart)
+                    
 class HistoricoView(Frame):
 
     def __init__(self, parent):
