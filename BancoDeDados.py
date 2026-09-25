@@ -53,13 +53,7 @@ class DataBase:
                 );
                 """
             )
-            # cursor.execute(
-            #     f"""
-            #     ALTER TABLE gastos ADD CONSTRAINT chk_categoria CHECK (
-            #         categoria IN {tuple(const.CATEGORIAS)}
-            #     );
-            #     """
-            # )
+
             # Cria tabela de saldos
             cursor.execute(
                 f"""
@@ -70,6 +64,27 @@ class DataBase:
                 );
                 """
             )
+
+            # Cria tabela de investimentos
+            cursor.execute(
+                f"""
+                CREATE TABLE IF NOT EXISTS investimentos (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    nome TEXT NOT NULL,
+                    tipo_ativo TEXT NOT NULL CHECK (
+                        tipo_ativo IN {tuple(const.TIPOS_DE_ATIVOS)}
+                    ),
+                    valor_inicial REAL NOT NULL,
+                    data_inicio DATE NOT NULL,
+                    data_vencimento DATE,
+                    percentual_contratado REAL NOT NULL,
+                    valor_bruto REAL,
+                    valor_liquido REAL,
+                    lucro_liquido REAL
+                );
+                """
+            )
+
             gastosDB.commit()
 
     @staticmethod

@@ -190,22 +190,92 @@ class InserirGastoView(Frame):
     def __init__(self, parent):
         super().__init__(parent, bg="#f4f6f9")
         self.db = DataBase()
-        label = Label(
-            self, text="Tela: Inserir Novo Gasto", font=("Helvetica", 14, "bold")
-        )
-        label.pack(pady=20)
 
+        # 1. Barra de seleção interna (Sub-menu com as 3 opções)
+        self.nav_tabs = Frame(self, bg="#e2e8f0")
+        self.nav_tabs.pack(side="top", fill="x", padx=15, pady=(10, 5))
+
+        self.btn_tab_gasto = Button(
+            self.nav_tabs, text="➕ Gasto", font=("Helvetica", 10, "bold"),
+            bg="#ffffff", fg="#2c3e50", relief="flat", cursor="hand2",
+            padx=12, pady=6, command=lambda: self.trocar_aba("gasto")
+        )
+        self.btn_tab_gasto.pack(side="left", padx=(0, 2))
+
+        self.btn_tab_invest = Button(
+            self.nav_tabs, text="📈 Investimento", font=("Helvetica", 10, "bold"),
+            bg="#e2e8f0", fg="#7f8c8d", relief="flat", cursor="hand2",
+            padx=12, pady=6, command=lambda: self.trocar_aba("investimento")
+        )
+        self.btn_tab_invest.pack(side="left", padx=2)
+
+        self.btn_tab_plan = Button(
+            self.nav_tabs, text="📅 Planejado", font=("Helvetica", 10, "bold"),
+            bg="#e2e8f0", fg="#7f8c8d", relief="flat", cursor="hand2",
+            padx=12, pady=6, command=lambda: self.trocar_aba("planejado")
+        )
+        self.btn_tab_plan.pack(side="left", padx=2)
+
+        # 2. Container onde o conteúdo das abas será renderizado
+        self.content_area = Frame(self, bg="#f4f6f9")
+        self.content_area.pack(side="top", fill="both", expand=True)
+
+        # 3. Cria os frames de cada aba
+        self.frame_gasto = Frame(self.content_area, bg="#f4f6f9")
+        self.frame_investimento = Frame(self.content_area, bg="#f4f6f9")
+        self.frame_planejado = Frame(self.content_area, bg="#f4f6f9")
+
+        # Monta a tela de gastos original
         self.imagem_capturada = None
+        self._montar_tela_gastos()
+
+        # Inicia abrindo a aba de Gastos
+        self.trocar_aba("gasto")
+
+    def trocar_aba(self, aba_selecionada):
+        """Alterna a exibição das três opções e atualiza o visual dos botões."""
+        # Oculta todos os frames
+        self.frame_gasto.pack_forget()
+        self.frame_investimento.pack_forget()
+        self.frame_planejado.pack_forget()
+
+        # Reseta as cores dos botões
+        for btn in (self.btn_tab_gasto, self.btn_tab_invest, self.btn_tab_plan):
+            btn.configure(bg="#e2e8f0", fg="#7f8c8d")
+
+        # Exibe a aba clicada e destaca seu botão
+        if aba_selecionada == "gasto":
+            self.frame_gasto.pack(fill="both", expand=True)
+            self.btn_tab_gasto.configure(bg="#ffffff", fg="#2c3e50")
+
+        elif aba_selecionada == "investimento":
+            self.frame_investimento.pack(fill="both", expand=True)
+            self.btn_tab_invest.configure(bg="#ffffff", fg="#2c3e50")
+            # Em branco por enquanto (pode chamar self._montar_tela_investimento futuramente)
+
+        elif aba_selecionada == "planejado":
+            self.frame_planejado.pack(fill="both", expand=True)
+            self.btn_tab_plan.configure(bg="#ffffff", fg="#2c3e50")
+            # Em branco por enquanto (pode chamar self._montar_tela_planejados futuramente)
+
+    # =========================================================================
+    # LÓGICA E MONTAGEM DA ABA: INSERIR GASTO
+    # =========================================================================
+    def _montar_tela_gastos(self):
+        label = Label(
+            self.frame_gasto, text="Tela: Inserir Novo Gasto", font=("Helvetica", 14, "bold"), bg="#f4f6f9"
+        )
+        label.pack(pady=(10, 5))
+
         self.cadastro_manual()
         self.cadastro_upload()
-        product_button = Button(self, text="Novo Produto", command=self.cadastro_nome_produto)
-        product_button.pack(padx=(0, 0), pady=(0, 0))  
+        
+        product_button = Button(self.frame_gasto, text="Novo Produto", command=self.cadastro_nome_produto)
+        product_button.pack(padx=(0, 0), pady=(5, 0))
 
     def cadastro_manual(self):
-        
-        # Frame de campos de inserção
-        form_frame = Frame(self)
-        form_frame.pack(pady=10, padx=10)
+        form_frame = Frame(self.frame_gasto, bg="#f4f6f9")
+        form_frame.pack(pady=5, padx=10)
 
         # Tipo
         self.prodTipo_var = StringVar()
@@ -236,16 +306,12 @@ class InserirGastoView(Frame):
         self.prodMet_var = StringVar()
         App.create_option_field(form_frame, "Método de Pagamento", textVar=self.prodMet_var, valores=const.METODOS_PAGAMENTO, row=6, padx=5, pady=2)
         
-
-        # self.prodName_entry = Entry(self, textvar=self.prodName_text)
-        # self.prodName_entry.pack(fill=BOTH, expand=False, padx=5, pady=5)
-
-        confirm_button = Button(self, text="Cadastrar Gasto", command=self.confirmar_gasto)
-        confirm_button.pack(padx=(0, 0), pady=(0, 0))
+        confirm_button = Button(self.frame_gasto, text="Cadastrar Gasto", command=self.confirmar_gasto)
+        confirm_button.pack(padx=(0, 0), pady=(5, 2))
 
     def cadastro_upload(self):
-        upload_button = Button(self, text="Extrair foto", command=self.abrir_popup_qrcode)
-        upload_button.pack(padx=(0, 0), pady=(0, 0))
+        upload_button = Button(self.frame_gasto, text="Extrair foto", command=self.abrir_popup_qrcode)
+        upload_button.pack(padx=(0, 0), pady=(2, 2))
 
     def cadastro_nome_produto(self):
         answ = simpledialog.askstring(title="Registrar Produto", prompt="digite a chave e valor do produto separados por virgula (e.g. caixa de chocolate, chocolate)")
@@ -275,10 +341,9 @@ class InserirGastoView(Frame):
                 answer = messagebox.askyesnocancel(title="Product Unknown", message=f"Produto {product.ori_name} não identificado, gostaria de cadastra-lo com novo nome (se não, o nome {product.ori_name} será cadastrado)?")
                 if answer == True:
                     novo_nome = simpledialog.askstring(
-                                    title="Cadastrar Produto",
-                                    prompt=f"Digite o nome padronizado para:\n'{product.ori_name}'"
-                                )
-                    # Se o usuário digitou e não cancelou:
+                        title="Cadastrar Produto",
+                        prompt=f"Digite o nome padronizado para:\n'{product.ori_name}'"
+                    )
                     if novo_nome and novo_nome.strip():
                         Gasto.map_key_value(product.name, novo_nome.strip())
                         Gasto.map_key_value(novo_nome.strip(), novo_nome.strip())
@@ -297,22 +362,18 @@ class InserirGastoView(Frame):
             messagebox.showwarning(title="Gasto Incompleto", message="Complete os dados do gasto para cadastrar")
 
     def abrir_popup_qrcode(self):
-        # 1. Obtém a URL e gera a imagem
         url = Camera.upload_url()
         url_img = qrcode.make(url)
         url_img = url_img.resize((220, 220))
 
-        # 2. Cria a janela PopUp (Toplevel)
         popup = Toplevel(self)
         popup.title("Escanear QR Code")
         popup.geometry("300x340")
         popup.resizable(False, False)
         
-        # Mantém o foco e bloqueia interação com a janela de trás até fechar
         popup.transient(self.winfo_toplevel())
         popup.grab_set()
 
-        # 3. Conteúdo da Janela
         lbl_instrucao = Label(popup, text="Aponte a câmera do celular:", font=("Helvetica", 10, "bold"))
         lbl_instrucao.pack(pady=(15, 5))
 
@@ -323,11 +384,8 @@ class InserirGastoView(Frame):
         lbl_status = Label(popup, text="Aguardando foto...", fg="#555")
         lbl_status.pack(pady=5)
 
-        # 4. Escuta o upload em segundo plano para não congelar o Tkinter
         def aguardar_foto():
             imagem = Camera.extract_image()
-            
-            # Fecha o popup e processa a foto assim que terminar
             self.after(0, popup.destroy)
             self.after(0, lambda: self.processar_imagem_recebida(imagem))
 
@@ -335,23 +393,14 @@ class InserirGastoView(Frame):
 
     def atualizar_categorias(self, *args):
         tipo_selecionado = self.prodTipo_var.get()
-        
-        # Busca a lista correspondente (ou const.CATEGORIAS como fallback)
         novas_opcoes = MAPEAMENTO_CATEGORIAS.get(tipo_selecionado, const.CATEGORIAS)
-        
-        # Atualiza as opções do Combobox existente
         self.cat_combo["values"] = novas_opcoes
-        
-        # Limpa ou define o primeiro valor da nova lista
         if novas_opcoes:
             self.prodCat_var.set("")
 
     def processar_imagem_recebida(self, imagem):
-        # class variables
         db = DataBase()
         chat = Chat()
-
-        showGastos_frame = Frame()
 
         answ = chat.getModelAnswer(imagem)
         message = ""
@@ -561,7 +610,6 @@ class AnaliseView(Frame):
                     valores[idx] = f"R$ {valores[idx]:.2f}"
                 
                 root.tree.insert("", "end", values=valores)
-
 
     class SubVisaoCategorias(SubVisaoBase):
         def __init__(self, parent, voltar_callback):
@@ -806,37 +854,163 @@ class HistoricoView(Frame):
 
     def __init__(self, parent):
         super().__init__(parent)
-        label = Label(
-            self, text="Tela: Histórico de Gastos", font=("Helvetica", 14, "bold")
-        )
-        label.pack(pady=20)
+
+        self.mapa_subvisoes = {
+            "gastos": self.carregar_gastos,
+            #"investimentos": self.carregar_investimentos, # falta terminar
+            #"planejados": self.carregar_planejados  # falta terminar
+        }
+
+        self.frame_menu_cards = Frame(self, bg="#f4f6f9")
+        self.frame_menu_cards.pack(fill="both", expand=True)
+
+        self.frame_detalhes = Frame(self, bg="#ffffff") # começa oculto e só aparece quando um card é clicado
 
         self.db = DataBase()
 
-        self.refresh_button = Button(self, text="Refresh", command=lambda: self.carregar_dados(self.db.getAllGastos()))
-        self.refresh_button.pack(side=TOP, padx=(20, 0), pady=(0, 0), anchor='w')
+        self._criar_cabecalho()
+        self._criar_grid_de_cards()
+    
+    def _criar_cabecalho(self):
+        header = Frame(self.frame_menu_cards, bg="#f4f6f9")
+        header.pack(side="top", fill="both", padx=25, pady=(20, 10))
 
-        self.frame_tabela = Frame(self)
-        self.frame_tabela.pack(fill="both", expand=True, padx=10, pady=10)
+        # Label: Painel de Tabelas e Históricos
+        App.create_label(header, "📊 Painel de Tabelas e Históricos", font=("Helvetica", 16, "bold"), bg="#f4f6f9", fg="#2c3e50", anchor="w")
+
+        # Label: Selecione um cartão para explorar os detalhes:
+        App.create_label(header, text="Selecione um cartão para explorar os detalhes:", font=("Helvetica", 10), bg="#f4f6f9", fg="#7f8c8d", anchor="w")    
+   
+    def _criar_grid_de_cards(self):
+        grid_frame = Frame(self.frame_menu_cards, bg="#f4f6f9")
+        grid_frame.pack(padx=20, pady=10, fill="both", expand=True)
+
+        grid_frame.columnconfigure(0, weight=1)
+
+        cards_info = [
+            {
+                "chave": "gastos",
+                "icone": "🏷️",
+                "titulo": "Histórico de Gastos",
+                "desc": "Tabela detalhada de gastos ordenação",
+                "row": 0, "col": 0,
+                "cor_hover": "#e8f4f8"
+            },
+            {
+                "chave": "investimentos",
+                "icone": "📈",
+                "titulo": "Tabela de Investimentos",
+                "desc": "Detalhes de investimentos e rendimentos",
+                "row": 1, "col": 0,
+                "cor_hover": "#fef9e7"
+            },
+            {
+                "chave": "planejados",
+                "icone": "💳",
+                "titulo": "Tabela de Gastos Planejados",
+                "desc": "Detalhes de gastos planejados e metas financeiras",
+                "row": 2, "col": 0,
+                "cor_hover": "#fcedf2"
+            }
+        ]
+
+        for card in cards_info:
+            self._criar_card(grid_frame, card)
+  
+    def _criar_card(self, parent, info):
+        card_btn = Frame(
+            parent,
+            bg="white",
+            bd=1,
+            relief="solid",
+            cursor="hand2",
+            padx=10,
+            pady=2
+        )
+        card_btn.grid(row=info["row"], column=info["col"], padx=5, pady=4, sticky="ew")
+
+        lbl_icone = App.create_label(card_btn, text=info["icone"], font=("Helvetica", 22), bg="white", anchor="w", pady=(0, 5))
+        lbl_titulo = App.create_label(card_btn, text=info["titulo"], font=("Helvetica", 11, "bold"), bg="white", fg="#2c3e50", anchor="w")
+        lbl_desc = App.create_label(card_btn, text=info["desc"], font=("Helvetica", 9), bg="white", fg="#7f8c8d", justify="left", anchor="w", pady=(4, 8))
+        lbl_acao = App.create_label(card_btn, text="Abrir relatório ➔", font=("Helvetica", 9, "bold"), bg="white", fg="#2980b9", anchor="e", side="bottom")
+
+        # Clicar em qualquer parte do card aciona o método
+        elementos = [card_btn, lbl_icone, lbl_titulo, lbl_desc, lbl_acao]
+        for elem in elementos:
+            elem.bind("<Button-1>", lambda e, chave=info["chave"]: self.abrir_detalhe(chave))
+            elem.bind("<Enter>", lambda e, f=card_btn, cor=info["cor_hover"]: self._aplicar_hover(f, cor))
+            elem.bind("<Leave>", lambda e, f=card_btn: self._aplicar_hover(f, "white"))
+
+    def _aplicar_hover(self, frame, cor):
+        frame.configure(bg=cor)
+        for child in frame.winfo_children():
+            child.configure(bg=cor)
+
+    def abrir_detalhe(self, chave):
+        """Oculta o menu de cartões e renderiza a sub-visão selecionada."""
+        self.frame_menu_cards.pack_forget()
+
+        # Limpa detalhes abertos anteriormente
+        for widget in self.frame_detalhes.winfo_children():
+            widget.destroy()
+
+        self.frame_detalhes.pack(fill="both", expand=True)
+
+        # Barra superior da tela de detalhe com botão voltar
+        barra_topo = Frame(self.frame_detalhes, bg="#ffffff")
+        barra_topo.pack(side="top", fill="x", padx=15, pady=(10, 5))
+
+        btn_voltar = Button(
+            barra_topo,
+            text="⬅ Voltar aos Cartões",
+            font=("Helvetica", 9, "bold"),
+            bg="#ecf0f1",
+            relief="flat",
+            command=self.voltar_ao_menu_cards,
+            cursor="hand2"
+        )
+        btn_voltar.pack(side="left")
+
+        # INSTANCIA A SUB-VISÃO AQUI:
+        view = self.mapa_subvisoes.get(chave)
+        if view:
+            view()
+
+    def voltar_ao_menu_cards(self):
+        """Oculta a tela de detalhe e traz o menu de cartões de volta."""
+        self.frame_detalhes.pack_forget()
+        self.frame_menu_cards.pack(fill="both", expand=True)
+
+    def carregar_gastos(self, dados_fetchall=None):
+        if dados_fetchall is None:
+            dados_fetchall = self.db.getAllGastos()
+
+        # Frame de ações (botão Refresh)
+        frame_acoes = Frame(self.frame_detalhes, bg="#ffffff")
+        frame_acoes.pack(side="top", fill="x", padx=15, pady=(0, 5))
+
+        self.refresh_button = Button(
+            frame_acoes, 
+            text="🔄 Refresh", 
+            command=lambda: self.abrir_detalhe(chave="gastos")
+        )
+        self.refresh_button.pack(side="left")
+
+        # Container da tabela
+        self.frame_tabela = Frame(self.frame_detalhes, bg="#ffffff")
+        self.frame_tabela.pack(side="top", fill="both", expand=True, padx=15, pady=(0, 10))
 
         self.colunas = ("id", "nome", "dia", "valor", "tipo_gasto", "categoria", "metodo_pagamento", "parcela")
-
         self.tree = App.create_tree_table(self.frame_tabela, self.colunas)
 
-        self.carregar_dados(self.db.getAllGastos())
-    
-        
-    def carregar_dados(self, dados_fetchall):
         for item in self.tree.get_children():
             self.tree.delete(item)
 
         for linha in dados_fetchall:
-            # linha é uma tupla, ex: (1, 'Alimentação', 'Mercado', '2026-09-16', 'PIX', 45.50)
-            
-            # Formata o valor monetário se desejar
             valores = list(linha)
-            valores[3] = f"R$ {valores[3]:.2f}"
-
+            # Garante que o valor existe antes de formatar
+            if len(valores) > 3 and isinstance(valores[3], (int, float)):
+                valores[3] = f"R$ {valores[3]:.2f}"
             self.tree.insert("", "end", values=valores)
 
 class SQLView(Frame):
@@ -853,7 +1027,6 @@ class SQLView(Frame):
         confirm_button = Button(self, text="Realizar Consulta", command=self.runQuery)
         confirm_button.pack(padx=(0, 0), pady=(0, 0))
 
-
     def runQuery(self):
 
         cur_query = self.query.get("1.0", "end-1c")
@@ -866,7 +1039,6 @@ class SQLView(Frame):
             print("Colunas:", colunas)
             print("Resultado", resul_consulta)
             self.showResult(resul_consulta, colunas)
-
 
     def showResult(self, dados_fetchall, colunas):
         popup = Toplevel(self)
@@ -942,7 +1114,7 @@ class App(Tk):
         self.nav_bar.pack_propagate(False)  # <-- Garante que a barra não encolha nem suma!
 
         self._create_nav_button("📊 Início", MainView)
-        self._create_nav_button("➕ Inserir Gasto", InserirGastoView)
+        self._create_nav_button("➕ Inserir", InserirGastoView)
         self._create_nav_button("📊 Análise", AnaliseView)
         self._create_nav_button("📋 Histórico", HistoricoView)
         self._create_nav_button("🗄️ SQL / Banco", SQLView)
@@ -970,6 +1142,8 @@ class App(Tk):
             frame.carregar_dados(DataBase.getAllGastos())
         if hasattr(frame, "carregar_ultmos_gastos"):
             frame.carregar_ultmos_gastos()
+
+        self.nav_bar.tkraise()
 
     @staticmethod
     def create_label(root, text, image=None, **kwargs):
