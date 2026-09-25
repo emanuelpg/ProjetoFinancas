@@ -17,6 +17,7 @@ from BancoDeDados import DataBase
 from Gasto import Gasto
 from Camera import Camera
 from Analytics import Analytics
+from Investiment import Investimento
 import const
 
 """ Constantes """
@@ -228,6 +229,7 @@ class InserirGastoView(Frame):
         # Monta a tela de gastos original
         self.imagem_capturada = None
         self._montar_tela_gastos()
+        self._montar_tela_investimento()
 
         # Inicia abrindo a aba de Gastos
         self.trocar_aba("gasto")
@@ -425,6 +427,163 @@ class InserirGastoView(Frame):
                 messagebox.showwarning(title="Cadastro Cancelado", message="Nota fiscal não foi cadastrada")
         else:
             messagebox.showerror(title="Falha no Cadastro", message="Erro no modelo de leitura da NF")
+
+    # =========================================================================
+    # LÓGICA E MONTAGEM DA ABA: INSERIR INVESTIMENTO
+    # =========================================================================
+    def _montar_tela_investimento(self):
+        label = Label(
+            self.frame_investimento, text="Tela: Inserir Novo Investimento", font=("Helvetica", 14, "bold"), bg="#f4f6f9"
+        )
+        label.pack(pady=(10, 5))
+        self.cadastrar_investimento()
+
+        pass
+
+    def cadastrar_investimento(self):
+        form_frame = Frame(self.frame_investimento, bg="#f4f6f9")
+        form_frame.pack(pady=5, padx=10)
+
+        # 1. Nome
+        self.investName_var = StringVar()
+        App.create_entry_field(form_frame, "Nome do Investimento", textVar=self.investName_var, row=0, padx=5, pady=2)
+
+        # 2. Valor Inicial
+        self.investValue_var = StringVar()
+        App.create_entry_field(form_frame, "Valor Inicial", textVar=self.investValue_var, row=1, padx=5, pady=2)
+
+        # 3. Data Inicial
+        self.investDate_var = StringVar()
+        App.create_date_field(form_frame, "Data de Início:", dateVar=self.investDate_var, row=2, padx=5, pady=2)
+
+
+        # 4. Tipo de Ativo
+        self.investType_var = StringVar()
+        App.create_option_field(form_frame, "Tipo de Ativo", textVar=self.investType_var, valores=const.TIPOS_DE_ATIVOS, row=3, padx=5, pady=2)
+
+        # 5. Tipo de Taxa (CDI, Selic, Pré-Fixado, IPCA+)
+        self.investTaxType_var = StringVar(value="CDI")
+        self.tax_combo = App.create_option_field(form_frame, "Tipo de Taxa", textVar=self.investTaxType_var, valores=const.TIPOS_DE_TAXAS, row=4, padx=5, pady=2)
+
+        # 6. Percentual Contratado (% do CDI/Selic ou Taxa Pré)
+        self.investTaxPercent_var = StringVar(value="100.0")
+        self.entry_percent = App.create_entry_field(form_frame, "Percentual / Taxa Base (%)", textVar=self.investTaxPercent_var, row=5, padx=5, pady=2)
+
+        # 7. Taxa Adicional Pré (Exclusiva para IPCA+)
+        self.investTaxAdicional_var = StringVar(value="0.0")
+        self.entry_taxa_adic = App.create_entry_field(form_frame, "Taxa Adicional IPCA+ (% a.a.)", textVar=self.investTaxAdicional_var, row=6, padx=5, pady=2)
+
+        # Callback para habilitar/desabilitar a taxa adicional dinamicamente
+        def on_tipo_taxa_changed(*args):
+            tipo_taxa = self.investTaxType_var.get()
+            if tipo_taxa == "IPCA":
+                self.entry_taxa_adic.configure(state="normal")
+                if hasattr(self, "investTaxAdicional_var") and not self.investTaxAdicional_var.get():
+                    self.investTaxAdicional_var.set("6.0")
+            else:
+                self.investTaxAdicional_var.set("0.0")
+                self.entry_taxa_adic.configure(state="disabled")
+
+        def toggle_end_date(*args):
+            if self.has_end_date_var.get():
+                self.end_date.configure(state="normal")
+            else:
+                self.end_date.configure(state="disabled")
+                self.investDateEnd_var.set("")  # Limpa o valor se desabilitado
+
+        # Tem vencimento? (checkbox)
+        self.has_end_date_var = BooleanVar(value=False)
+        self.end_date_checkbox = Checkbutton(
+            form_frame,
+            text="Possui Data de Vencimento?",
+            variable=self.has_end_date_var,
+            command=toggle_end_date,
+        )
+        self.end_date_checkbox.grid(row=7, column=0, sticky='w', padx=5, pady=2)
+        
+        # Data vencimento (opcional)
+        self.investDateEnd_var = StringVar()
+        self.end_date = App.create_date_field(form_frame, "Data de Vencimento (opcional):", dateVar=self.investDateEnd_var, row=8, padx=5, pady=2)
+        self.end_date.configure(state="disabled")  # Desabilita a data de vencimento por padrão
+
+        self.has_end_date_var.trace_add("write", toggle_end_date)  # Callback para habilitar/desabilitar a data de vencimento
+        self.investTaxType_var.trace_add("write", on_tipo_taxa_changed)
+        on_tipo_taxa_changed()  # Ajusta o estado inicial
+        toggle_end_date()  # Ajusta o estado inicial da data de vencimento
+        # Botão Único de Cadastro
+        confirm_button = Button(self.frame_investimento, text="Cadastrar Investimento", command=self.confirmar_investimento)
+        confirm_button.pack(padx=(0, 0), pady=(10, 5))
+
+
+    def confirmar_investimento(self):
+        # Validação rápida de campos vazios
+        campos = [
+            self.investName_var.get(),
+            self.investValue_var.get(),
+            self.investDate_var.get(),
+            self.investType_var.get(),
+            self.investTaxType_var.get()
+        ]
+        if any(campo.strip() == "" for campo in campos):
+            messagebox.showwarning(title="Dados Incompletos", message="Preencha todos os campos antes de continuar.")
+            return
+
+        try:
+            val_inicial = float(self.investValue_var.get().replace(",", "."))
+            taxa_base = float(self.investTaxPercent_var.get().replace(",", ".")) if self.investTaxPercent_var.get() else 0.0
+            taxa_adicional = float(self.investTaxAdicional_var.get().replace(",", ".")) if self.investTaxAdicional_var.get() else 0.0
+            data_ini = datetime.strptime(self.investDate_var.get(), "%Y-%m-%d").date()
+            data_fim = datetime.strptime(self.investDateEnd_var.get(), "%Y-%m-%d").date() if self.has_end_date_var.get() and self.investDateEnd_var.get() else None
+        except ValueError as e:
+            messagebox.showerror(title="Valor Inválido", message=f"Verifique se valores numéricos e datas estão corretos.\nDetalhe: {e}")
+            return
+
+        # Instancia o objeto já com a taxa adicional do IPCA+
+        investimento = Investimento(
+            nome=self.investName_var.get(),
+            valor_inicial=val_inicial,
+            data_inicio=data_ini,
+            data_vencimento=data_fim,
+            tipo_ativo=self.investType_var.get(),
+            tipo_taxa=self.investTaxType_var.get(),
+            percentual_contratado=taxa_base,
+            taxa_adicional_ipca=taxa_adicional
+        )
+
+        # 1. Calcula o valor bruto uma única vez (evita bater no BCB repetidamente)
+        investimento.calcular_valor_bruto()
+
+        # 2. Passa o valor bruto já calculado para apurar IOF e IR
+        impostos = investimento.calcular_impostos()
+
+        # Linha extra descritiva no resumo se for IPCA+
+        detalhe_taxa = (
+            f"Taxa: IPCA + {investimento.taxa_adicional_ipca:.2f}% a.a.\n"
+            if investimento.tipo_taxa == "IPCA+"
+            else f"Percentual Contratado: {investimento.percentual_contratado:.2f}%\n"
+        )
+
+        message = (
+            f"Nome: {investimento.nome}\n"
+            f"Valor Inicial: R$ {investimento.valor_inicial:.2f}\n"
+            f"Data de Início: {investimento.data_inicio.strftime('%d/%m/%Y')}\n"
+            f"Data de Vencimento: {investimento.data_vencimento.strftime('%d/%m/%Y') if investimento.data_vencimento else 'N/A'}\n"
+            f"Tipo de Ativo: {investimento.tipo_ativo}\n"
+            f"Tipo de Taxa: {investimento.tipo_taxa}\n"
+            f"{detalhe_taxa}\n"
+            f"----------------------------------------\n"
+            f"Valor Bruto Atual: R$ {investimento._valor_bruto_cache:.2f}\n"
+            f"Provisão IOF: R$ {impostos['iof']:.2f}\n"
+            f"Provisão IR: R$ {impostos['ir']:.2f} ({impostos['aliquota_ir']:.1f}%)\n"
+            f"Valor Líquido: R$ {impostos['valor_liquido']:.2f}\n"
+            f"Rendimento Líquido: R$ {impostos['lucro_liquido']:.2f}"
+        )
+
+        if messagebox.askyesno(title="Confirmação do Investimento", message=message):
+            DataBase.insertInvestimento(investimento)
+            messagebox.showinfo(title="Investimento Cadastrado", message="Investimento cadastrado com sucesso!")
+        else:
+            messagebox.showwarning(title="Cadastro Cancelado", message="Investimento não foi cadastrado.")
 
 class AnaliseView(Frame):
     analisador = Analytics()
@@ -857,7 +1016,7 @@ class HistoricoView(Frame):
 
         self.mapa_subvisoes = {
             "gastos": self.carregar_gastos,
-            #"investimentos": self.carregar_investimentos, # falta terminar
+            "investimentos": self.carregar_investimentos,
             #"planejados": self.carregar_planejados  # falta terminar
         }
 
@@ -1001,6 +1160,40 @@ class HistoricoView(Frame):
         self.frame_tabela.pack(side="top", fill="both", expand=True, padx=15, pady=(0, 10))
 
         self.colunas = ("id", "nome", "dia", "valor", "tipo_gasto", "categoria", "metodo_pagamento", "parcela")
+        self.tree = App.create_tree_table(self.frame_tabela, self.colunas)
+
+        for item in self.tree.get_children():
+            self.tree.delete(item)
+
+        for linha in dados_fetchall:
+            valores = list(linha)
+            # Garante que o valor existe antes de formatar
+            if len(valores) > 3 and isinstance(valores[3], (int, float)):
+                valores[3] = f"R$ {valores[3]:.2f}"
+            self.tree.insert("", "end", values=valores)
+
+    def carregar_investimentos(self, dados_fetchall=None):
+        if dados_fetchall is None:
+            dados_fetchall, self.colunas = self.db.getAllInvestimentos()
+        else:
+            _, self.colunas = self.db.getAllInvestimentos()
+
+        self.db.refreshInvestimentos()  # Atualiza os valores dos investimentos antes de exibir
+        # Frame de ações (botão Refresh)
+        frame_acoes = Frame(self.frame_detalhes, bg="#ffffff")
+        frame_acoes.pack(side="top", fill="x", padx=15, pady=(0, 5))
+
+        self.refresh_button = Button(
+            frame_acoes, 
+            text="🔄 Refresh", 
+            command=lambda: self.abrir_detalhe(chave="investimentos")
+        )
+        self.refresh_button.pack(side="left")
+
+        # Container da tabela
+        self.frame_tabela = Frame(self.frame_detalhes, bg="#ffffff")
+        self.frame_tabela.pack(side="top", fill="both", expand=True, padx=15, pady=(0, 10))
+
         self.tree = App.create_tree_table(self.frame_tabela, self.colunas)
 
         for item in self.tree.get_children():
@@ -1180,6 +1373,7 @@ class App(Tk):
         field_label.grid(row=row, column=0, sticky='w', padx=kwargs.get("padx"), pady=kwargs.get("pady"))
         field_entry.grid(row=row, column=1, sticky='w', padx=kwargs.get("padx"), pady=kwargs.get("pady"))
 
+        return field_entry
     @staticmethod
     def create_option_field(root, fieldName, textVar, valores, row=0, **kwargs):
         field_label = Label(root, text=fieldName, bg=kwargs.get("bg"))
@@ -1211,6 +1405,8 @@ class App(Tk):
 
         field_label.grid(row=row, column=0, sticky='w', padx=kwargs.get("padx", 5), pady=kwargs.get("pady", 5))
         field_date.grid(row=row, column=1, sticky='w', padx=kwargs.get("padx", 5), pady=kwargs.get("pady", 5))
+
+        return field_date
 
     @staticmethod
     def create_multiline_field(parent, fieldName, row=0, height=3, width=25, **kwargs):

@@ -1,6 +1,7 @@
 import sqlite3
 
 from Gasto import Gasto
+from Investiment import Investimento
 import const
 
 from datetime import datetime
@@ -74,10 +75,14 @@ class DataBase:
                     tipo_ativo TEXT NOT NULL CHECK (
                         tipo_ativo IN {tuple(const.TIPOS_DE_ATIVOS)}
                     ),
+                    tipo_taxa TEXT NOT NULL CHECK (
+                        tipo_taxa IN {tuple(const.TIPOS_DE_TAXAS)}
+                    ),
                     valor_inicial REAL NOT NULL,
                     data_inicio DATE NOT NULL,
                     data_vencimento DATE,
-                    percentual_contratado REAL NOT NULL,
+                    percentual_contratado REAL DEFAULT 100.0 NOT NULL,
+                    taxa_adicional_ipca REAL DEFAULT 0.0 NOT NULL,
                     valor_bruto REAL,
                     valor_liquido REAL,
                     lucro_liquido REAL
@@ -87,6 +92,9 @@ class DataBase:
 
             gastosDB.commit()
 
+    # =========================================================================
+    # MÉTODOS DE GASTOS
+    # =========================================================================
     @staticmethod
     def insertGasto(gasto, parcelas="1"):
         parc = int(parcelas)
@@ -165,63 +173,6 @@ class DataBase:
             gastosDB.commit()    
 
     @staticmethod
-    def destroyTable(table):
-        with sqlite3.connect(DataBase.nome) as gastosDB:
-            cursor = gastosDB.cursor()
-            cursor.execute(
-                f"""
-                DROP TABLE IF EXISTS {table}
-                """
-            ) 
-            gastosDB.commit() 
-
-    @staticmethod
-    def consultaManual(query):
-        with sqlite3.connect(DataBase.nome) as gastosDB:
-            cursor = gastosDB.cursor()
-            cursor.execute(query) 
-            gastosDB.commit() 
-            nomes_colunas = [coluna[0] for coluna in cursor.description]
-
-            return cursor.fetchall(), nomes_colunas
-
-    @staticmethod
-    def consultaSaldo(mes=None):
-        if mes is None:
-            return DataBase.consultaManual("select saldo_total from saldo Order by dia DESC, id DESC")[0][0][0]
-        else:
-            query = f"""
-            select
-            COALESCE(i.entradas, 0) - COALESCE(o.saidas, 0) AS saldo,
-            COALESCE(i.entradas, 0) AS entradas,
-            COALESCE(o.saidas, 0) AS saidas from 
-            (
-                select sum(valor) as saidas, strftime('%Y-%m', dia) AS mes 
-                from gastos
-                where mes = '{mes}' AND tipo_gasto in ('Gasto Fixo', 'Gasto Não Fixo')
-            ) as o,
-            (
-                select sum(valor) as entradas, strftime('%Y-%m', dia) AS mes 
-                from gastos
-                where mes = '{mes}' AND tipo_gasto in ('Entrada')
-            ) as i;
-            """
-            saldo, entrada, saida = DataBase.consultaManual(query)[0][0]
-            return saldo, saida, entrada
-
-    @staticmethod
-    def atualizaSaldo(new_value, day=None):
-        if day is None:
-            day = datetime.today().strftime('%Y-%m-%d')
-        with sqlite3.connect(DataBase.nome) as gastosDB:
-            cursor = gastosDB.cursor()
-            cursor.execute(f"INSERT INTO saldo (saldo_total, dia) VALUES (?, ?)", (new_value, day)) 
-            gastosDB.commit() 
-
-            return new_value
-        return None
-
-    @staticmethod
     def transposeGastos():
         with sqlite3.connect(DataBase.nome) as conn:
             cursor = conn.cursor()
@@ -269,6 +220,140 @@ class DataBase:
                 # 8. Re-enable foreign keys
                 cursor.execute("PRAGMA foreign_keys = ON;")
 
+    # =========================================================================
+    # MÉTODOS DE INVESTIMENTOS
+    # =========================================================================
+    @staticmethod
+    def insertInvestimento(investimento):
+        with sqlite3.connect(DataBase.nome) as gastosDB:
+            cursor = gastosDB.cursor()
+            cursor.execute(
+                """
+                INSERT INTO investimentos (nome, tipo_ativo, tipo_taxa, valor_inicial, data_inicio, data_vencimento, percentual_contratado, taxa_adicional_ipca, valor_bruto, valor_liquido, lucro_liquido)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (investimento.nome, investimento.tipo_ativo, investimento.tipo_taxa, investimento.valor_inicial, investimento.data_inicio.isoformat(), investimento.data_vencimento.isoformat() if investimento.data_vencimento else None, investimento.percentual_contratado, investimento.taxa_adicional_ipca, investimento._valor_bruto_cache, investimento.valor_liquido, investimento.lucro_liquido),
+            )
+
+            gastosDB.commit()
+
+    @staticmethod
+    def refreshInvestimentos():
+        with sqlite3.connect(DataBase.nome) as gastosDB:
+            cursor = gastosDB.cursor()
+
+            cursor.execute(
+                """
+                SELECT * FROM investimentos
+                """
+            )
+
+            investimentos = cursor.fetchall()
+
+            for inv in investimentos:
+                investimento = Investimento(
+                    nome=inv[1],
+                    tipo_ativo=inv[2],
+                    tipo_taxa=inv[3],
+                    valor_inicial=inv[4],
+                    data_inicio=date.fromisoformat(inv[5]),
+                    data_vencimento=date.fromisoformat(inv[6]) if inv[6] else None,
+                    percentual_contratado=inv[7],
+                    taxa_adicional_ipca=inv[8]
+                )
+                investimento.calcular_valor_bruto(forcar_recalculo=True)
+                investimento.calcularLucro()
+
+                cursor.execute(
+                    """
+                    UPDATE investimentos
+                    SET valor_bruto = ?, valor_liquido = ?, lucro_liquido = ?
+                    WHERE id = ?
+                    """,
+                    (investimento._valor_bruto_cache, investimento.valor_liquido, investimento.lucro_liquido, inv[0]),
+                )
+
+            gastosDB.commit()
+
+    @staticmethod
+    def getAllInvestimentos():
+        with sqlite3.connect(DataBase.nome) as gastosDB:
+            cursor = gastosDB.cursor()
+
+            cursor.execute(
+                """
+                SELECT nome, data_inicio, data_vencimento, valor_inicial, ROUND(valor_liquido, 2) as valor_liquido, ROUND(lucro_liquido, 2) as lucro_liquido FROM investimentos
+                Order by data_inicio DESC, id DESC
+                """
+            )
+
+            gastosDB.commit()
+
+            nomes_colunas = [coluna[0] for coluna in cursor.description]
+            return cursor.fetchall(), nomes_colunas
+    # =========================================================================
+    # MÉTODOS DE SALDO
+    # =========================================================================
+    @staticmethod
+    def consultaSaldo(mes=None):
+        if mes is None:
+            return DataBase.consultaManual("select saldo_total from saldo Order by dia DESC, id DESC")[0][0][0]
+        else:
+            query = f"""
+            select
+            COALESCE(i.entradas, 0) - COALESCE(o.saidas, 0) AS saldo,
+            COALESCE(i.entradas, 0) AS entradas,
+            COALESCE(o.saidas, 0) AS saidas from 
+            (
+                select sum(valor) as saidas, strftime('%Y-%m', dia) AS mes 
+                from gastos
+                where mes = '{mes}' AND tipo_gasto in ('Gasto Fixo', 'Gasto Não Fixo')
+            ) as o,
+            (
+                select sum(valor) as entradas, strftime('%Y-%m', dia) AS mes 
+                from gastos
+                where mes = '{mes}' AND tipo_gasto in ('Entrada')
+            ) as i;
+            """
+            saldo, entrada, saida = DataBase.consultaManual(query)[0][0]
+            return saldo, saida, entrada
+
+    @staticmethod
+    def atualizaSaldo(new_value, day=None):
+        if day is None:
+            day = datetime.today().strftime('%Y-%m-%d')
+        with sqlite3.connect(DataBase.nome) as gastosDB:
+            cursor = gastosDB.cursor()
+            cursor.execute(f"INSERT INTO saldo (saldo_total, dia) VALUES (?, ?)", (new_value, day)) 
+            gastosDB.commit() 
+
+            return new_value
+        return None
+
+    # =========================================================================
+    # MÉTODOS AUXILIARES
+    # =========================================================================
+    @staticmethod
+    def destroyTable(table):
+        with sqlite3.connect(DataBase.nome) as gastosDB:
+            cursor = gastosDB.cursor()
+            cursor.execute(
+                f"""
+                DROP TABLE IF EXISTS {table}
+                """
+            ) 
+            gastosDB.commit() 
+
+    @staticmethod
+    def consultaManual(query):
+        with sqlite3.connect(DataBase.nome) as gastosDB:
+            cursor = gastosDB.cursor()
+            cursor.execute(query) 
+            gastosDB.commit() 
+            nomes_colunas = [coluna[0] for coluna in cursor.description]
+
+            return cursor.fetchall(), nomes_colunas
+    
     @staticmethod
     def insertCol(table, colName, dtype, default=None):
         with sqlite3.connect(DataBase.nome) as conn:
@@ -295,6 +380,7 @@ class DataBase:
 
 """ Testes manuais """
 # db = DataBase()
+# db.destroyTable("investimentos")
 # db.insertCol("gastos", "parcela", "INTEGER", 1)
 # DataBase.transposeGastos()
 #DataBase.deleteGasto(24)
