@@ -275,6 +275,8 @@ class DataBase:
 
             gastosDB.commit()
 
+        DataBase.deleteExpiredInvestimentos()
+
     @staticmethod
     def getAllInvestimentos():
         with sqlite3.connect(DataBase.nome) as gastosDB:
@@ -291,6 +293,44 @@ class DataBase:
 
             nomes_colunas = [coluna[0] for coluna in cursor.description]
             return cursor.fetchall(), nomes_colunas
+   
+    @staticmethod
+    def deleteInvestimento(id):
+        with sqlite3.connect(DataBase.nome) as gastosDB:
+            cursor = gastosDB.cursor()
+
+            cursor.execute(
+                f"""
+                DELETE FROM investimentos WHERE id = {str(id)}
+                """
+            )
+
+            gastosDB.commit()
+
+    @staticmethod
+    def deleteExpiredInvestimentos():
+        # Remove investimentos that have a data_vencimento in the past e add lucro to saldo
+        with sqlite3.connect(DataBase.nome) as gastosDB:
+            cursor = gastosDB.cursor()
+
+            cursor.execute(
+                f"""
+                SELECT id, lucro_liquido FROM investimentos WHERE data_vencimento IS NOT NULL AND data_vencimento < date('now');
+                """
+            )
+
+            expired_investments = cursor.fetchall()
+
+            for inv in expired_investments:
+                DataBase.saldo = DataBase.atualizaSaldo(DataBase.saldo + float(inv[1]))
+
+                cursor.execute(
+                    f"""
+                    DELETE FROM investimentos WHERE id = {str(inv[0])}
+                    """
+                )
+
+            gastosDB.commit()
     # =========================================================================
     # MÉTODOS DE SALDO
     # =========================================================================
@@ -383,5 +423,5 @@ class DataBase:
 # db.destroyTable("investimentos")
 # db.insertCol("gastos", "parcela", "INTEGER", 1)
 # DataBase.transposeGastos()
-#DataBase.deleteGasto(24)
+# DataBase.deleteGasto(74)
 #DataBase.consultaManual("SELECT sql FROM sqlite_master  WHERE type = 'table' AND name = 'nome_da_tabela';")

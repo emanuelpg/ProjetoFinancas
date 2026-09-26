@@ -80,7 +80,10 @@ class Investimento:
             valor_bruto = self.calcular_valor_bruto()
 
         lucro_bruto = max(0.0, valor_bruto - self.valor_inicial)
-        dias_corridos = (date.today() - self.data_inicio).days
+        if self.data_vencimento is not None and self.data_vencimento < date.today():
+            dias_corridos = (self.data_vencimento - self.data_inicio).days
+        else:
+            dias_corridos = (date.today() - self.data_inicio).days
 
         if not self.tem_imposto or lucro_bruto == 0.0:
             return {

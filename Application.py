@@ -581,6 +581,15 @@ class InserirGastoView(Frame):
 
         if messagebox.askyesno(title="Confirmação do Investimento", message=message):
             DataBase.insertInvestimento(investimento)
+            gasto_investimento = Gasto(
+                tipo="Investimento",
+                name=investimento.nome,
+                price=investimento.valor_inicial,
+                cat="Renda Fixa",
+                data=investimento.data_inicio.strftime("%Y-%m-%d"),
+                pag="Débito"
+            )
+            self.cadastrar_gasto(gasto_investimento)
             messagebox.showinfo(title="Investimento Cadastrado", message="Investimento cadastrado com sucesso!")
         else:
             messagebox.showwarning(title="Cadastro Cancelado", message="Investimento não foi cadastrado.")
