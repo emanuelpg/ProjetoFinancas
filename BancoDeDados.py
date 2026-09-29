@@ -99,7 +99,7 @@ class DataBase:
     def insertGasto(gasto, parcelas="1"):
         parc = int(parcelas)
         data_base = date.fromisoformat(gasto.date)
-        val_parc = gasto.price / parc
+        val_parc = float(gasto.price) / parc
         with sqlite3.connect(DataBase.nome) as gastosDB:
             cursor = gastosDB.cursor()
             for i in range(parc):

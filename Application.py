@@ -422,6 +422,8 @@ class InserirGastoView(Frame):
                 message += f"{produto.__str__(1)} dia: {data}\n"
             if messagebox.askyesno(title="Produtos Encontrados", message=message):
                 db.showGastos()
+                for produto in produtos:
+                    self.cadastrar_gasto(produto)
                 messagebox.showinfo(title="Cadastro Concluído", message="Nota fiscal cadastrada com sucesso")
             else:
                 messagebox.showwarning(title="Cadastro Cancelado", message="Nota fiscal não foi cadastrada")
